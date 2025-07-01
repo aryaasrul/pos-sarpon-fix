@@ -1,0 +1,38 @@
+/* src/Katalog.css */
+
+.katalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.katalog-header h1 { font-size: 24px; font-weight: bold; margin: 0; }
+.btn-add-product { background-color: var(--secondary-bg); color: var(--text-primary); border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.btn-add-product img { width: 16px; height: 16px; }
+
+.search-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.search-bar { flex: 1; position: relative; }
+.search-bar input { width: 100%; padding: 12px 15px; background-color: var(--secondary-bg); border: none; border-radius: 8px; font-size: 16px; }
+.btn-filter { background-color: var(--secondary-bg); border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+.btn-filter img { width: 20px; height: 20px; }
+
+.categories { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+.categories::-webkit-scrollbar { display: none; }
+.category { background: none; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.category.active { background-color: var(--dark-color); color: var(--light-color); }
+
+.katalog-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+.katalog-card { background-color: var(--card-bg, white); border-radius: 10px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.katalog-card-image-placeholder { width: 70px; height: 70px; background-color: var(--secondary-bg); border-radius: 8px; flex-shrink: 0; }
+.katalog-card-details { flex-grow: 1; }
+.katalog-card-details h3 { font-size: 16px; margin: 0 0 5px 0; }
+.katalog-card-details p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+.katalog-card-options-btn { background: none; border: none; cursor: pointer; padding: 5px; }
+.katalog-card-options-btn img { width: 24px; height: 24px; }
+
+/* Gaya untuk Modal Opsi */
+.option-modal { padding: 0; }
+.option-modal h2 { padding: 15px 20px; margin: 0; font-size: 18px; border-bottom: 1px solid var(--border-color, #ddd); }
+.option-btn { display: block; width: 100%; padding: 15px 20px; border: none; background-color: transparent; text-align: left; font-size: 16px; cursor: pointer; }
+.option-btn:hover { background-color: #f8f9fa; }
+.option-btn.danger { color: var(--brand-red, #dc3545); }

@@ -1,0 +1,135 @@
+/* src/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px 25px;
+  padding-bottom: 150px; /* Ruang untuk Navbar dan Cart */
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background-color: var(--primary-bg);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  height: 32px;
+  width: auto;
+}
+
+.app-header h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.header-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  background-color: var(--secondary-bg);
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Axiforma', sans-serif;
+  font-size: 14px;
+}
+
+/* ================================================= */
+/* === GAYA UNTUK SEMUA MODAL (POP-UP) APLIKASI === */
+/* ================================================= */
+
+.modal-overlay {
+  position: fixed; /* Tetap di posisi yang sama bahkan saat di-scroll */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Latar belakang gelap transparan */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Memastikan modal ada di lapisan paling atas */
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: 'Axiforma', sans-serif;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: 'Axiforma', sans-serif;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+}
+
+.btn-save {
+  background-color: var(--brand-blue, #007bff);
+  color: white;
+}

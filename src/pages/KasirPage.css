@@ -1,0 +1,65 @@
+/* src/pages/KasirPage.css */
+.search-bar { margin-bottom: 15px; }
+.search-bar input {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: var(--secondary-bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.categories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+}
+.categories::-webkit-scrollbar { display: none; }
+
+.category-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.category-btn.active {
+  background-color: var(--dark-color);
+  color: var(--light-color);
+  border-color: var(--dark-color);
+}
+
+.product-list-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+.cart-summary {
+  position: fixed;
+  bottom: 80px; /* Di atas navbar (tinggi navbar sekitar 70-80px) */
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  background-color: var(--card-bg); /* INI KUNCINYA */
+  border-top: 1px solid var(--border-color);
+  z-index: 40;
+}
+
+.cart-info p:first-child { font-size: 14px; color: var(--text-secondary); margin: 0 0 5px 0; }
+.cart-info p:last-child { font-size: 20px; font-weight: bold; margin: 0; }
+
+.btn-process {
+  background-color: var(--dark-color);
+  color: var(--light-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}

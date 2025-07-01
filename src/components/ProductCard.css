@@ -1,0 +1,28 @@
+/* src/components/ProductCard.css */
+.product-card {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.product-image-placeholder {
+  width: 70px;
+  height: 70px;
+  background-color: var(--secondary-bg);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.product-details { flex-grow: 1; }
+.product-details h3 { font-size: 18px; margin: 0 0 5px 0; }
+.product-details p { font-size: 16px; color: var(--text-secondary); margin: 0; }
+
+.quantity-control { display: flex; align-items: center; gap: 15px; }
+.quantity-control button { background: none; border: none; cursor: pointer; padding: 0; }
+.quantity-control button img { width: 24px; height: 24px; }
+.quantity-control span { font-size: 16px; font-weight: bold; min-width: 20px; text-align: center; }
+
