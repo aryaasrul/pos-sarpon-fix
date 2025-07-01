@@ -1,18 +1,16 @@
-// src/pages/RiwayatPage.jsx (Versi BARU dengan Supabase)
-
 import React, { useState, useEffect } from 'react';
-// Perubahan: Impor supabase, bukan axios
-import { supabase } from '../supabaseClient';
+import toast from 'react-hot-toast'; // Impor library notifikasi
+import { supabase } from '../supabaseClient'; // Impor Supabase client
 import ExpenseFormModal from '../components/ExpenseFormModal';
 import '../Riwayat.css';
 
-// Komponen DateAccordion tidak perlu diubah sama sekali, jadi bisa dibiarkan apa adanya.
+// Komponen DateAccordion tidak perlu diubah
 function DateAccordion({ date, items, type, balance }) {
   const [isOpen, setIsOpen] = useState(true);
 
   const dailyTotal = items.reduce((sum, item) => sum + (type === 'income' ? item.price * item.quantity : item.amount), 0);
   const dailyProfit = type === 'income' 
-    ? items.reduce((sum, item) => sum + ((item.price - item.hpp) * item.quantity), 0)
+    ? items.reduce((sum, item) => sum + ((item.price - (item.hpp || 0)) * item.quantity), 0)
     : 0;
 
   const renderSummary = () => {
@@ -37,7 +35,7 @@ function DateAccordion({ date, items, type, balance }) {
           <span className="amount expense">- Rp {dailyTotal.toLocaleString('id-ID')}</span>
         </div>
         <div className="summary-row">
-          <span>Sisa saldo</span>
+          <span>Sisa Saldo</span>
           <span>Rp {balance.toLocaleString('id-ID')}</span>
         </div>
       </>
@@ -78,12 +76,8 @@ function DateAccordion({ date, items, type, balance }) {
       </button>
       {isOpen && (
         <div className="accordion-body">
-          <div className="summary-section">
-            {renderSummary()}
-          </div>
-          <div className="item-details-section">
-            {renderItems()}
-          </div>
+          <div className="summary-section">{renderSummary()}</div>
+          <div className="item-details-section">{renderItems()}</div>
         </div>
       )}
     </div>
@@ -102,7 +96,6 @@ function RiwayatPage() {
   const totalExpense = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const currentBalance = totalIncome - totalExpense;
 
-  // Perubahan: Mengambil data dari Supabase
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -119,6 +112,7 @@ function RiwayatPage() {
 
     } catch (error) {
       console.error("Gagal mengambil data riwayat:", error);
+      toast.error("Gagal mengambil data riwayat.");
     } finally {
       setLoading(false);
     }
@@ -128,23 +122,30 @@ function RiwayatPage() {
     fetchData();
   }, []);
 
-  // Perubahan: Menyimpan data pengeluaran ke Supabase
   const handleSaveExpense = async (formData) => {
-    // Membuat group_id sederhana seperti di backend Laravel sebelumnya
-    const dataToSave = {
-        ...formData,
-        group_id: 'exp_' + Date.now()
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Sesi tidak valid, silakan login ulang.");
+        return;
+      }
 
-    const { error } = await supabase.from('expenses').insert([dataToSave]);
+      const dataToSave = {
+          ...formData,
+          group_id: 'exp_' + Date.now(),
+          user_id: user.id
+      }
+  
+      const { error } = await supabase.from('expenses').insert([dataToSave]);
+  
+      if (error) throw error;
 
-    if (error) {
-        console.error("Gagal menyimpan pengeluaran:", error);
-        alert(error.message);
-    } else {
-        alert('Pengeluaran berhasil disimpan.');
-        setIsModalOpen(false);
-        fetchData(); // Muat ulang data
+      toast.success('Pengeluaran berhasil disimpan.');
+      setIsModalOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error("Gagal menyimpan pengeluaran:", error);
+      toast.error("Gagal menyimpan pengeluaran: " + error.message);
     }
   };
 

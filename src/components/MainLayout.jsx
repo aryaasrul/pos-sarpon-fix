@@ -4,6 +4,8 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Navbar from './Navbar'; // Kita akan buat/modifikasi Navbar
+import { Toaster } from 'react-hot-toast';
+
 
 function MainLayout() {
   return (

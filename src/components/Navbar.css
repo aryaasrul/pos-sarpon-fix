@@ -1,13 +1,13 @@
-/* src/components/Navbar.css */
+/* src/components/Navbar.css (Versi FINAL) */
 
 .navbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex; /* Membuat item menyamping */
-  justify-content: space-around; /* Memberi jarak antar item */
-  align-items: center; /* Menengahkan ikon secara vertikal */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
   background-color: #000000; /* Latar belakang solid hitam */
   height: 70px;
   padding: 10px 0;
@@ -22,22 +22,17 @@
   align-items: center;
   padding: 8px 20px;
   border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
-/* === INI ADALAH PERBAIKAN UNTUK WARNA IKON === */
 .nav-item img {
   width: 24px;
   height: 24px;
-  /* Trik CSS untuk mengubah ikon hitam (SVG) menjadi putih */
-  filter: invert(100%) opacity(0.7); 
-  transition: filter 0.2s;
-}
-
-/* Membuat ikon yang aktif menjadi putih solid */
-.nav-item.active img {
+  /* Trik CSS untuk mengubah ikon SVG hitam menjadi putih solid */
   filter: invert(100%) opacity(1);
 }
 
+/* Memberi sedikit highlight pada item yang sedang aktif */
 .nav-item.active {
-  background-color: #333;
+  background-color: #333333;
 }
