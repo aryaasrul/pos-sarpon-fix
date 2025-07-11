@@ -1,4 +1,4 @@
-// src/pages/KasirPage.jsx - OPTIMIZED VERSION
+// src/pages/KasirPage.jsx - Enhanced dengan Books
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient'; 
 import Cart from '../components/Cart';
@@ -7,19 +7,21 @@ import ProductCard from '../components/ProductCard';
 import '../components/ProductCard.css';
 
 function KasirPage() {
+    // State untuk menu kopi
     const [displayMenu, setDisplayMenu] = useState([]);
+    // State untuk buku
+    const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cart, setCart] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    
+    // State untuk tab aktif
+    const [activeTab, setActiveTab] = useState('menu'); // 'menu' atau 'books'
 
-    // === OPTIMIZED DATA FETCHING ===
+    // === FETCH MENU DATA ===
     const fetchMenuAndPrices = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
         try {
-            // Parallel fetch untuk performance
             const { data: menuItems, error: menuError } = await supabase
                 .from('menu_items')
                 .select('*');
@@ -27,8 +29,6 @@ function KasirPage() {
             if (menuError) throw menuError;
 
             const finalMenu = [];
-
-            // Batch RPC calls untuk performance
             const pricePromises = menuItems.map(async (item) => {
                 const { data: prices, error: rpcError } = await supabase.rpc(
                     'calculate_menu_prices',
@@ -48,34 +48,84 @@ function KasirPage() {
                         menu_name: item.name,
                         ingredient_name: priceInfo.ingredient_name,
                         item_to_cart: {
-                            id: `${item.id}-${priceInfo.ingredient_id}`,
+                            id: `menu-${item.id}-${priceInfo.ingredient_id}`,
                             name: `${item.name} (${priceInfo.ingredient_name})`,
                             price: priceInfo.sell_price,
                             hpp: priceInfo.hpp,
+                            type: 'MENU'
                         }
                     });
                 });
             });
             
             setDisplayMenu(finalMenu);
-
         } catch (err) {
-            setError('Gagal memuat data menu: ' + err.message);
-            console.error('Menu fetch error:', err);
-        } finally {
-            setLoading(false);
+            throw new Error('Menu: ' + err.message);
         }
     }, []);
 
-    useEffect(() => {
-        fetchMenuAndPrices();
-    }, [fetchMenuAndPrices]);
+    // === FETCH BOOKS DATA ===
+    const fetchBooks = useCallback(async () => {
+        try {
+            const { data: booksData, error: booksError } = await supabase
+                .from('books')
+                .select('*')
+                .gt('stock_quantity', 0) // Hanya yang masih ada stoknya
+                .order('title');
 
-    // === OPTIMIZED CART FUNCTIONS ===
+            if (booksError) throw booksError;
+
+            const formattedBooks = booksData.map(book => ({
+                display_id: `book-${book.id}`,
+                item_to_cart: {
+                    id: `book-${book.id}`,
+                    name: `${book.title}${book.author ? ` - ${book.author}` : ''}`,
+                    price: book.selling_price,
+                    hpp: book.purchase_price,
+                    type: 'BOOK',
+                    book_id: book.id,
+                    stock: book.stock_quantity
+                }
+            }));
+
+            setBooks(formattedBooks);
+        } catch (err) {
+            throw new Error('Books: ' + err.message);
+        }
+    }, []);
+
+    // === FETCH ALL DATA ===
+    const fetchAllData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await Promise.all([fetchMenuAndPrices(), fetchBooks()]);
+        } catch (err) {
+            setError('Gagal memuat data: ' + err.message);
+            console.error('Data fetch error:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchMenuAndPrices, fetchBooks]);
+
+    useEffect(() => {
+        fetchAllData();
+    }, [fetchAllData]);
+
+    // === CART FUNCTIONS ===
     const handleAddToCart = useCallback((product) => {
         setCart((prevCart) => {
             const existingItem = prevCart.find((item) => item.id === product.id);
             if (existingItem) {
+                // Check stock untuk buku
+                if (product.type === 'BOOK') {
+                    const newQuantity = existingItem.quantity + 1;
+                    if (newQuantity > product.stock) {
+                        alert(`Stok buku hanya tersedia ${product.stock} buah`);
+                        return prevCart;
+                    }
+                }
                 return prevCart.map((item) =>
                     item.id === product.id 
                         ? { ...item, quantity: item.quantity + 1 } 
@@ -104,18 +154,23 @@ function KasirPage() {
     
     const clearCart = useCallback(() => {
         setCart([]);
-    }, []);
+        // Refresh data setelah transaksi (untuk update stok buku)
+        fetchAllData();
+    }, [fetchAllData]);
     
-    // === MEMOIZED FILTERED PRODUCTS ===
+    // === CURRENT DATA BERDASARKAN TAB ===
+    const currentData = activeTab === 'menu' ? displayMenu : books;
+    
+    // === FILTERED PRODUCTS ===
     const filteredProducts = useMemo(() => {
-        if (!searchTerm.trim()) return displayMenu;
+        if (!searchTerm.trim()) return currentData;
         
-        return displayMenu.filter(product => 
+        return currentData.filter(product => 
             product.item_to_cart.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [displayMenu, searchTerm]);
+    }, [currentData, searchTerm]);
 
-    // === MEMOIZED CART MAP ===
+    // === CART MAP ===
     const cartMap = useMemo(() => {
         return cart.reduce((map, item) => {
             map[item.id] = item.quantity;
@@ -134,7 +189,7 @@ function KasirPage() {
                 <h3>Terjadi Kesalahan</h3>
                 <p>{error}</p>
                 <button 
-                    onClick={fetchMenuAndPrices}
+                    onClick={fetchAllData}
                     style={{
                         padding: '10px 20px',
                         backgroundColor: '#000',
@@ -169,7 +224,7 @@ function KasirPage() {
                     borderRadius: '50%',
                     animation: 'spin 1s linear infinite'
                 }}></div>
-                <span>Memuat menu...</span>
+                <span>Memuat data...</span>
                 <style>{`
                     @keyframes spin {
                         0% { transform: rotate(0deg); }
@@ -182,29 +237,72 @@ function KasirPage() {
 
     return (
         <div className="kasir-page">
+            {/* Search Bar */}
             <div className="search-bar">
                 <input
                     type="text"
-                    placeholder="Cari Produk..."
+                    placeholder={`Cari ${activeTab === 'menu' ? 'menu' : 'buku'}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+
+            {/* Tab Navigation */}
+            <div className="categories">
+                <button 
+                    className={`category ${activeTab === 'menu' ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveTab('menu');
+                        setSearchTerm('');
+                    }}
+                >
+                    ☕ Menu Kopi ({displayMenu.length})
+                </button>
+                <button 
+                    className={`category ${activeTab === 'books' ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveTab('books');
+                        setSearchTerm('');
+                    }}
+                >
+                    📚 Buku ({books.length})
+                </button>
+            </div>
             
+            {/* Product List */}
             <div className="product-list-container">
-                 {filteredProducts.map(menuItem => {
-                    const quantity = cartMap[menuItem.item_to_cart.id] || 0;
-                    
-                    return (
-                        <ProductCard
-                            key={menuItem.display_id}
-                            product={menuItem.item_to_cart}
-                            quantity={quantity}
-                            onAddToCart={() => handleAddToCart(menuItem.item_to_cart)}
-                            onRemoveFromCart={() => handleRemoveFromCart(menuItem.item_to_cart)}
-                        />
-                    );
-                })}
+                {filteredProducts.length === 0 ? (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '40px', 
+                        color: '#666',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        margin: '20px 0'
+                    }}>
+                        <h3>Tidak ada {activeTab === 'menu' ? 'menu' : 'buku'}</h3>
+                        <p>
+                            {searchTerm 
+                                ? `Tidak ditemukan dengan kata kunci "${searchTerm}"`
+                                : `Belum ada ${activeTab === 'menu' ? 'menu' : 'buku'} yang tersedia.`
+                            }
+                        </p>
+                    </div>
+                ) : (
+                    filteredProducts.map(item => {
+                        const quantity = cartMap[item.item_to_cart.id] || 0;
+                        
+                        return (
+                            <ProductCard
+                                key={item.display_id}
+                                product={item.item_to_cart}
+                                quantity={quantity}
+                                onAddToCart={() => handleAddToCart(item.item_to_cart)}
+                                onRemoveFromCart={() => handleRemoveFromCart(item.item_to_cart)}
+                            />
+                        );
+                    })
+                )}
             </div>
 
             <Cart cart={cart} onOrderSuccess={clearCart} />

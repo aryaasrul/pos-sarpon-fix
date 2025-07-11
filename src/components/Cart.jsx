@@ -1,23 +1,21 @@
+// src/components/Cart.jsx - Enhanced untuk Books
 import React, { useState } from 'react';
-import toast from 'react-hot-toast'; // Impor library notifikasi
-import { supabase } from '../supabaseClient'; // Impor Supabase client
+import toast from 'react-hot-toast';
+import { supabase } from '../supabaseClient';
 
 function Cart({ cart, onOrderSuccess }) {
   const [loading, setLoading] = useState(false);
   
-  // Menghitung total harga dari item di keranjang
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Fungsi untuk memproses pesanan
   const handleProcessOrder = async () => {
     if (cart.length === 0) {
-      toast.error('Keranjang masih kosong!'); // Gunakan toast untuk error
+      toast.error('Keranjang masih kosong!');
       return;
     }
     setLoading(true);
     
     try {
-      // 1. Ambil data user yang sedang login untuk mendapatkan ID-nya
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -26,26 +24,53 @@ function Cart({ cart, onOrderSuccess }) {
         return;
       }
 
-      // 2. Format data keranjang untuk tabel 'orders' di Supabase
       const transactionId = 'txn_' + Date.now();
-      const orderData = cart.map(item => ({
-        transaction_id: transactionId,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        hpp: item.hpp,
-        user_id: user.id, // Sertakan ID pengguna yang membuat transaksi
-      }));
+      
+      // Pisahkan data berdasarkan tipe produk
+      const orderData = cart.map(item => {
+        const baseOrder = {
+          transaction_id: transactionId,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          hpp: item.hpp,
+          user_id: user.id,
+          product_type: item.type, // 'MENU' atau 'BOOK'
+        };
 
-      // 3. Kirim data pesanan ke tabel 'orders'
+        // Tambah book_id untuk produk buku
+        if (item.type === 'BOOK') {
+          baseOrder.book_id = item.book_id;
+        }
+
+        return baseOrder;
+      });
+
+      // === VALIDASI STOK BUKU SEBELUM TRANSAKSI ===
+      const bookItems = cart.filter(item => item.type === 'BOOK');
+      if (bookItems.length > 0) {
+        for (const bookItem of bookItems) {
+          const { data: bookData, error: bookError } = await supabase
+            .from('books')
+            .select('stock_quantity, title')
+            .eq('id', bookItem.book_id)
+            .single();
+
+          if (bookError) throw bookError;
+
+          if (bookData.stock_quantity < bookItem.quantity) {
+            throw new Error(`Stok buku "${bookData.title}" tidak mencukupi. Tersisa: ${bookData.stock_quantity}`);
+          }
+        }
+      }
+
+      // === SIMPAN TRANSAKSI ===
       const { error } = await supabase.from('orders').insert(orderData);
       
-      if (error) {
-        throw error; // Lemparkan error agar ditangkap oleh blok catch
-      }
+      if (error) throw error;
       
-      toast.success('Pesanan berhasil disimpan!'); // Gunakan toast untuk notifikasi sukses
-      onOrderSuccess(); // Panggil fungsi untuk membersihkan keranjang di parent
+      toast.success(`Transaksi berhasil! Total: Rp ${total.toLocaleString('id-ID')}`);
+      onOrderSuccess();
 
     } catch (error) {
       console.error('Gagal memproses pesanan:', error);
@@ -54,11 +79,22 @@ function Cart({ cart, onOrderSuccess }) {
       setLoading(false);
     }
   };
+
+  // Hitung summary berdasarkan tipe
+  const menuItems = cart.filter(item => item.type === 'MENU');
+  const bookItems = cart.filter(item => item.type === 'BOOK');
   
   return (
     <div className="cart-summary">
       <div className="cart-info">
-        <p>Total ({cart.length} item)</p>
+        <p>
+          Total ({cart.length} item)
+          {menuItems.length > 0 && bookItems.length > 0 && (
+            <span style={{ fontSize: '12px', color: '#666', display: 'block' }}>
+              {menuItems.length} menu • {bookItems.length} buku
+            </span>
+          )}
+        </p>
         <p>Rp {total.toLocaleString('id-ID')}</p>
       </div>
       <button 
