@@ -1,121 +1,184 @@
-// src/pages/KasirPage.jsx (Versi BARU dengan Supabase)
-
-import { useState, useEffect } from 'react';
-// Perubahan: Impor client supabase, bukan axios
+// src/pages/KasirPage.jsx - OPTIMIZED VERSION
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient'; 
-// Perubahan: Komponen ProductList lama mungkin tidak cocok, jadi kita sederhanakan renderingnya di sini
-// import ProductList from '../components/ProductList'; 
 import Cart from '../components/Cart';
 import './KasirPage.css';
-// Perubahan: Impor ProductCard untuk digunakan kembali
 import ProductCard from '../components/ProductCard'; 
-import '../components/ProductCard.css'; // Pastikan CSS-nya juga diimpor
+import '../components/ProductCard.css';
 
 function KasirPage() {
-    // Perubahan: State untuk menampung data menu yang sudah diolah dengan harga dinamis
     const [displayMenu, setDisplayMenu] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cart, setCart] = useState([]);
-    // State untuk UI lainnya bisa dipertahankan
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Perubahan Total: Logika pengambilan data dari Supabase
-    useEffect(() => {
-        const fetchMenuAndPrices = async () => {
-            setLoading(true);
-            setError(null);
+    // === OPTIMIZED DATA FETCHING ===
+    const fetchMenuAndPrices = useCallback(async () => {
+        setLoading(true);
+        setError(null);
 
-            try {
-                // 1. Ambil semua item dari tabel menu
-                const { data: menuItems, error: menuError } = await supabase
-                    .from('menu_items')
-                    .select('*');
+        try {
+            // Parallel fetch untuk performance
+            const { data: menuItems, error: menuError } = await supabase
+                .from('menu_items')
+                .select('*');
 
-                if (menuError) throw menuError;
+            if (menuError) throw menuError;
 
-                // Array untuk menampung hasil akhir yang akan ditampilkan
-                const finalMenu = [];
+            const finalMenu = [];
 
-                // 2. Untuk setiap item menu, panggil fungsi kalkulasi harga
-                for (const item of menuItems) {
-                    const { data: prices, error: rpcError } = await supabase.rpc(
-                        'calculate_menu_prices',
-                        { p_menu_item_id: item.id }
-                    );
+            // Batch RPC calls untuk performance
+            const pricePromises = menuItems.map(async (item) => {
+                const { data: prices, error: rpcError } = await supabase.rpc(
+                    'calculate_menu_prices',
+                    { p_menu_item_id: item.id }
+                );
 
-                    if (rpcError) throw rpcError;
+                if (rpcError) throw rpcError;
+                return { item, prices };
+            });
 
-                    // 3. Gabungkan data menu dengan hasil harganya
-                    // Ini akan membuat item terpisah untuk setiap pilihan beans
-                    prices.forEach(priceInfo => {
-                        finalMenu.push({
-                            // id unik untuk keperluan React
-                            display_id: `${item.id}-${priceInfo.ingredient_id}`, 
-                            menu_name: item.name,
-                            ingredient_name: priceInfo.ingredient_name,
-                            // Informasi ini yang akan dimasukkan ke keranjang
-                            item_to_cart: {
-                                id: `${item.id}-${priceInfo.ingredient_id}`,
-                                name: `${item.name} (${priceInfo.ingredient_name})`,
-                                price: priceInfo.sell_price,
-                                hpp: priceInfo.hpp, // Kita simpan juga HPP-nya
-                            }
-                        });
+            const results = await Promise.all(pricePromises);
+
+            results.forEach(({ item, prices }) => {
+                prices.forEach(priceInfo => {
+                    finalMenu.push({
+                        display_id: `${item.id}-${priceInfo.ingredient_id}`,
+                        menu_name: item.name,
+                        ingredient_name: priceInfo.ingredient_name,
+                        item_to_cart: {
+                            id: `${item.id}-${priceInfo.ingredient_id}`,
+                            name: `${item.name} (${priceInfo.ingredient_name})`,
+                            price: priceInfo.sell_price,
+                            hpp: priceInfo.hpp,
+                        }
                     });
-                }
-                
-                setDisplayMenu(finalMenu);
+                });
+            });
+            
+            setDisplayMenu(finalMenu);
 
-            } catch (err) {
-                setError('Gagal memuat data menu.');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchMenuAndPrices();
+        } catch (err) {
+            setError('Gagal memuat data menu: ' + err.message);
+            console.error('Menu fetch error:', err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    // Perubahan: Logika untuk menambah item ke keranjang
-    const handleAddToCart = (product) => {
+    useEffect(() => {
+        fetchMenuAndPrices();
+    }, [fetchMenuAndPrices]);
+
+    // === OPTIMIZED CART FUNCTIONS ===
+    const handleAddToCart = useCallback((product) => {
         setCart((prevCart) => {
             const existingItem = prevCart.find((item) => item.id === product.id);
             if (existingItem) {
                 return prevCart.map((item) =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.id === product.id 
+                        ? { ...item, quantity: item.quantity + 1 } 
+                        : item
                 );
             } else {
                 return [...prevCart, { ...product, quantity: 1 }];
             }
         });
-    };
+    }, []);
 
-    const handleRemoveFromCart = (product) => {
+    const handleRemoveFromCart = useCallback((product) => {
         setCart((prevCart) => {
             const existingItem = prevCart.find((item) => item.id === product.id);
             if (existingItem?.quantity > 1) {
                 return prevCart.map((item) =>
-                    item.id === product.id ? { ...item, quantity: item.quantity - 1 } : item
+                    item.id === product.id 
+                        ? { ...item, quantity: item.quantity - 1 } 
+                        : item
                 );
             } else {
                 return prevCart.filter((item) => item.id !== product.id);
             }
         });
-    };
+    }, []);
     
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setCart([]);
-    };
+    }, []);
     
-    // Logika filter berdasarkan pencarian
-    const filteredProducts = displayMenu.filter(product => 
-        product.item_to_cart.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // === MEMOIZED FILTERED PRODUCTS ===
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm.trim()) return displayMenu;
+        
+        return displayMenu.filter(product => 
+            product.item_to_cart.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [displayMenu, searchTerm]);
 
-    if (loading) return <div>Memuat menu...</div>;
-    if (error) return <div style={{ color: 'red', padding: '20px' }}>{error}</div>;
+    // === MEMOIZED CART MAP ===
+    const cartMap = useMemo(() => {
+        return cart.reduce((map, item) => {
+            map[item.id] = item.quantity;
+            return map;
+        }, {});
+    }, [cart]);
+
+    // === ERROR STATE ===
+    if (error) {
+        return (
+            <div style={{ 
+                padding: '40px 20px', 
+                textAlign: 'center',
+                color: '#dc3545'
+            }}>
+                <h3>Terjadi Kesalahan</h3>
+                <p>{error}</p>
+                <button 
+                    onClick={fetchMenuAndPrices}
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#000',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Coba Lagi
+                </button>
+            </div>
+        );
+    }
+
+    // === LOADING STATE ===
+    if (loading) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '50vh',
+                flexDirection: 'column',
+                gap: '15px'
+            }}>
+                <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #f3f3f3',
+                    borderTop: '3px solid #000',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
+                <span>Memuat menu...</span>
+                <style>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
         <div className="kasir-page">
@@ -128,16 +191,13 @@ function KasirPage() {
                 />
             </div>
             
-            {/* Perubahan: Kita render langsung di sini, bukan lewat ProductList */}
             <div className="product-list-container">
                  {filteredProducts.map(menuItem => {
-                    const cartItem = cart.find(item => item.id === menuItem.item_to_cart.id);
-                    const quantity = cartItem ? cartItem.quantity : 0;
+                    const quantity = cartMap[menuItem.item_to_cart.id] || 0;
                     
                     return (
                         <ProductCard
                             key={menuItem.display_id}
-                            // product yang dikirim ke component card adalah object siap pakai
                             product={menuItem.item_to_cart}
                             quantity={quantity}
                             onAddToCart={() => handleAddToCart(menuItem.item_to_cart)}

@@ -1,4 +1,4 @@
-/* src/components/Navbar.css (Versi FINAL) */
+/* src/components/Navbar.css (Versi FINAL dengan Icon Putih) */
 
 .navbar {
   position: fixed;
@@ -28,11 +28,22 @@
 .nav-item img {
   width: 24px;
   height: 24px;
-  /* Trik CSS untuk mengubah ikon SVG hitam menjadi putih solid */
-  filter: invert(100%) opacity(1);
+  /* MAGIC CSS TRICK: Ubah ikon SVG jadi putih solid! ✨ */
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(0deg) brightness(100%) contrast(100%);
 }
 
 /* Memberi sedikit highlight pada item yang sedang aktif */
 .nav-item.active {
   background-color: #333333;
+}
+
+/* Hover effect untuk better UX */
+.nav-item:hover {
+  background-color: #222222;
+  transform: scale(1.05);
+}
+
+/* Smooth transition */
+.nav-item img {
+  transition: all 0.2s ease;
 }
