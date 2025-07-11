@@ -1,9 +1,8 @@
-// src/pages/BooksPage.jsx - Complete Code dari Awal sampai Akhir
+// src/pages/BooksPage.jsx - Full Complete Version
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
-// Modal Form untuk Tambah/Edit Buku
 function BookFormModal({ isOpen, onClose, onSave, book }) {
   const [formData, setFormData] = useState({
     title: '',
@@ -179,7 +178,6 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
             />
           </div>
 
-          {/* Preview Profit */}
           {formData.purchase_price && formData.selling_price && (
             <div style={{ 
               padding: '10px', 
@@ -201,7 +199,6 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
   );
 }
 
-// Modal untuk Tambah Stok
 function StockModal({ isOpen, onClose, onSave, book }) {
   const [additionalStock, setAdditionalStock] = useState('');
   const [notes, setNotes] = useState('');
@@ -266,78 +263,130 @@ function StockModal({ isOpen, onClose, onSave, book }) {
   );
 }
 
-// Main Component
 function BooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [sortBy, setSortBy] = useState('created_at'); // created_at, title, stock_quantity
+  const [sortBy, setSortBy] = useState('created_at');
 
-  // Fetch Books
-  const fetchBooks = async () => {
-    setLoading(true);
+  const fetchBooks = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError(null);
+    
     try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error('Sesi tidak valid: ' + authError.message);
+      }
+      
+      if (!user) {
+        throw new Error('Silakan login untuk mengakses data buku');
+      }
+
       const { data, error } = await supabase
         .from('books')
         .select('*')
         .order(sortBy, { ascending: sortBy === 'title' });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(`Gagal memuat buku: ${error.message}`);
+      }
+
+      console.log('Fetched books:', data?.length || 0, 'books');
       setBooks(data || []);
+      
     } catch (error) {
       console.error('Error fetching books:', error);
-      toast.error('Gagal memuat data buku: ' + error.message);
+      setError(error.message);
+      toast.error(error.message);
+      
+      if (sortBy !== 'created_at') {
+        try {
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('books')
+            .select('*');
+            
+          if (!fallbackError && fallbackData) {
+            setBooks(fallbackData);
+            setError(null);
+            toast.success('Data berhasil dimuat (mode fallback)');
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback fetch also failed:', fallbackErr);
+        }
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBooks();
+    
+    const interval = setInterval(() => {
+      fetchBooks(false);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [sortBy]);
 
-  // Save Book (Create/Update)
   const handleSave = async (formData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Sesi tidak valid, silakan login ulang.");
-        return;
+        throw new Error("Sesi tidak valid, silakan login ulang.");
       }
 
-      const dataToSave = { ...formData, user_id: user.id };
+      const dataToSave = { 
+        ...formData, 
+        user_id: user.id,
+        updated_at: new Date().toISOString()
+      };
 
+      let result;
       if (selectedBook) {
-        // Update existing book
-        const { error } = await supabase
+        result = await supabase
           .from('books')
           .update(dataToSave)
-          .eq('id', selectedBook.id);
-        if (error) throw error;
+          .eq('id', selectedBook.id)
+          .select();
+          
+        if (result.error) throw result.error;
         toast.success('Buku berhasil diperbarui!');
       } else {
-        // Create new book
-        const { error } = await supabase
+        result = await supabase
           .from('books')
-          .insert([dataToSave]);
-        if (error) throw error;
+          .insert([dataToSave])
+          .select();
+          
+        if (result.error) throw result.error;
         toast.success('Buku berhasil ditambahkan!');
       }
 
       setIsModalOpen(false);
       setSelectedBook(null);
-      fetchBooks();
+      await fetchBooks(false);
+      
     } catch (error) {
       console.error('Error saving book:', error);
-      toast.error('Gagal menyimpan buku: ' + error.message);
+      
+      if (error.message.includes('permission')) {
+        toast.error('Tidak memiliki izin untuk menyimpan data. Silakan hubungi administrator.');
+      } else if (error.message.includes('network')) {
+        toast.error('Koneksi bermasalah. Periksa internet Anda.');
+      } else {
+        toast.error('Gagal menyimpan buku: ' + error.message);
+      }
     }
   };
 
-  // Add Stock
   const handleAddStock = async (stockData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -346,7 +395,6 @@ function BooksPage() {
         return;
       }
 
-      // Update stock di tabel books
       const { error: updateError } = await supabase
         .from('books')
         .update({ 
@@ -357,7 +405,6 @@ function BooksPage() {
 
       if (updateError) throw updateError;
 
-      // Record movement
       const { error: movementError } = await supabase
         .from('book_stock_movements')
         .insert([{
@@ -381,9 +428,10 @@ function BooksPage() {
     }
   };
 
-  // Delete Book
   const handleDelete = async (book) => {
-    if (!window.confirm(`Yakin ingin menghapus buku "${book.title}"?\n\nData ini akan terhapus permanen!`)) {
+    const confirmMessage = `Yakin ingin menghapus buku "${book.title}"?\n\n⚠️ Data ini akan terhapus permanen dan tidak bisa dikembalikan!`;
+    
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
@@ -394,15 +442,23 @@ function BooksPage() {
         .eq('id', book.id);
 
       if (error) throw error;
-      toast.success('Buku berhasil dihapus!');
-      fetchBooks();
+      
+      toast.success(`Buku "${book.title}" berhasil dihapus!`);
+      await fetchBooks(false);
+      
     } catch (error) {
       console.error('Error deleting book:', error);
       toast.error('Gagal menghapus buku: ' + error.message);
     }
   };
 
-  // Filter & Search Logic
+  const handleRefresh = () => {
+    toast.loading('Menyinkronkan data...', { id: 'refresh' });
+    fetchBooks().then(() => {
+      toast.success('Data berhasil disinkronkan!', { id: 'refresh' });
+    });
+  };
+
   const filteredBooks = books.filter(book => {
     const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (book.author && book.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -411,14 +467,53 @@ function BooksPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Get unique categories
   const categories = [...new Set(books.map(book => book.category).filter(Boolean))].sort();
-
-  // Calculate totals
   const totalBooks = books.length;
   const totalStock = books.reduce((sum, book) => sum + book.stock_quantity, 0);
   const totalValue = books.reduce((sum, book) => sum + (book.selling_price * book.stock_quantity), 0);
   const lowStockBooks = books.filter(book => book.stock_quantity <= 5).length;
+
+  if (error && !books.length) {
+    return (
+      <div style={{ 
+        padding: '40px 20px', 
+        textAlign: 'center',
+        color: '#dc3545'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+        <h3>Terjadi Kesalahan</h3>
+        <p style={{ marginBottom: '20px' }}>{error}</p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button 
+            onClick={() => fetchBooks()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Coba Lagi
+          </button>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Refresh Halaman
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -451,30 +546,58 @@ function BooksPage() {
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1>📚 Manajemen Buku</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#000',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <span>+</span> Tambah Buku
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={handleRefresh}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            🔄 Sync
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#000',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            + Tambah Buku
+          </button>
+        </div>
       </div>
 
-      {/* Statistics Cards */}
+      <div style={{ 
+        marginBottom: '20px',
+        padding: '8px 12px',
+        backgroundColor: books.length > 0 ? '#d4edda' : '#f8d7da',
+        color: books.length > 0 ? '#155724' : '#721c24',
+        borderRadius: '4px',
+        fontSize: '12px'
+      }}>
+        {books.length > 0 ? 
+          `✅ Terhubung - ${books.length} buku dimuat` : 
+          '⚠️ Belum ada data atau koneksi bermasalah'
+        }
+      </div>
+
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
@@ -523,7 +646,6 @@ function BooksPage() {
         </div>
       </div>
 
-      {/* Filter & Search Controls */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: '2fr 1fr 1fr', 
@@ -586,7 +708,6 @@ function BooksPage() {
         </div>
       </div>
 
-      {/* Books Grid */}
       {filteredBooks.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
@@ -646,7 +767,6 @@ function BooksPage() {
               e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
             }}
             >
-              {/* Stock Warning Badge */}
               {book.stock_quantity <= 5 && (
                 <div style={{
                   position: 'absolute',
@@ -663,7 +783,6 @@ function BooksPage() {
                 </div>
               )}
 
-              {/* Book Info */}
               <div style={{ marginBottom: '15px' }}>
                 <h3 style={{ 
                   margin: '0 0 8px 0', 
@@ -697,7 +816,6 @@ function BooksPage() {
                 )}
               </div>
 
-              {/* Pricing Info */}
               <div style={{ marginBottom: '15px' }}>
                 <div style={{ 
                   display: 'grid', 
@@ -735,7 +853,6 @@ function BooksPage() {
                 </div>
               </div>
 
-              {/* Description */}
               {book.description && (
                 <div style={{ 
                   marginBottom: '15px',
@@ -753,7 +870,6 @@ function BooksPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => {
@@ -814,7 +930,6 @@ function BooksPage() {
         </div>
       )}
 
-      {/* Book Form Modal */}
       <BookFormModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -825,7 +940,6 @@ function BooksPage() {
         book={selectedBook}
       />
 
-      {/* Stock Modal */}
       <StockModal
         isOpen={isStockModalOpen}
         onClose={() => {
@@ -836,7 +950,6 @@ function BooksPage() {
         book={selectedBook}
       />
 
-      {/* Custom Styles */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
