@@ -1,4 +1,4 @@
-// src/pages/KasirPage.jsx - Enhanced dengan Books
+// src/pages/KasirPage.jsx - FIXED VERSION untuk Menu Coffee & Non-Coffee
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient'; 
 import Cart from '../components/Cart';
@@ -19,7 +19,7 @@ function KasirPage() {
     // State untuk tab aktif
     const [activeTab, setActiveTab] = useState('menu'); // 'menu' atau 'books'
 
-    // === FETCH MENU DATA ===
+    // === FETCH MENU DATA (FIXED) ===
     const fetchMenuAndPrices = useCallback(async () => {
         try {
             const { data: menuItems, error: menuError } = await supabase
@@ -29,34 +29,63 @@ function KasirPage() {
             if (menuError) throw menuError;
 
             const finalMenu = [];
-            const pricePromises = menuItems.map(async (item) => {
-                const { data: prices, error: rpcError } = await supabase.rpc(
-                    'calculate_menu_prices',
-                    { p_menu_item_id: item.id }
-                );
 
-                if (rpcError) throw rpcError;
-                return { item, prices };
-            });
+            for (const item of menuItems) {
+                // Cek apakah menu ini coffee-based (punya recipe) atau non-coffee
+                const { data: recipes, error: recipeError } = await supabase
+                    .from('recipe_ingredients')
+                    .select('id')
+                    .eq('menu_item_id', item.id)
+                    .limit(1);
 
-            const results = await Promise.all(pricePromises);
+                if (recipeError) throw recipeError;
 
-            results.forEach(({ item, prices }) => {
-                prices.forEach(priceInfo => {
+                if (recipes && recipes.length > 0) {
+                    // MENU COFFEE - pakai calculate_menu_prices
+                    const { data: prices, error: rpcError } = await supabase.rpc(
+                        'calculate_menu_prices',
+                        { p_menu_item_id: item.id }
+                    );
+
+                    if (rpcError) throw rpcError;
+
+                    prices.forEach(priceInfo => {
+                        finalMenu.push({
+                            display_id: `${item.id}-${priceInfo.ingredient_id}`,
+                            menu_name: item.name,
+                            ingredient_name: priceInfo.ingredient_name,
+                            item_to_cart: {
+                                id: `menu-${item.id}-${priceInfo.ingredient_id}`,
+                                name: `${item.name} (${priceInfo.ingredient_name})`,
+                                price: priceInfo.sell_price,
+                                hpp: priceInfo.hpp,
+                                type: 'MENU'
+                            }
+                        });
+                    });
+                } else {
+                    // MENU NON-COFFEE - pakai calculate_non_coffee_price
+                    const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
+                        'calculate_non_coffee_price',
+                        { p_menu_item_id: item.id }
+                    );
+
+                    if (nonCoffeeError) throw nonCoffeeError;
+
                     finalMenu.push({
-                        display_id: `${item.id}-${priceInfo.ingredient_id}`,
+                        display_id: `${item.id}-non-coffee`,
                         menu_name: item.name,
-                        ingredient_name: priceInfo.ingredient_name,
+                        ingredient_name: 'Non-Coffee',
                         item_to_cart: {
-                            id: `menu-${item.id}-${priceInfo.ingredient_id}`,
-                            name: `${item.name} (${priceInfo.ingredient_name})`,
-                            price: priceInfo.sell_price,
-                            hpp: priceInfo.hpp,
+                            id: `menu-${item.id}-non-coffee`,
+                            name: item.name,
+                            price: nonCoffeePrice,
+                            hpp: item.fixed_cost,
                             type: 'MENU'
                         }
                     });
-                });
-            });
+                }
+            }
             
             setDisplayMenu(finalMenu);
         } catch (err) {
@@ -256,7 +285,7 @@ function KasirPage() {
                         setSearchTerm('');
                     }}
                 >
-                    ☕ Menu Kopi ({displayMenu.length})
+                    ☕ Menu ({displayMenu.length})
                 </button>
                 <button 
                     className={`category ${activeTab === 'books' ? 'active' : ''}`}
