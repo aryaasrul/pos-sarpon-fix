@@ -1,10 +1,11 @@
-// src/pages/KasirPage.jsx - FIXED VERSION untuk Menu Coffee & Non-Coffee
+// src/pages/KasirPage.jsx - FIXED VERSION dengan RPC Debugger
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient'; 
 import Cart from '../components/Cart';
 import './KasirPage.css';
 import ProductCard from '../components/ProductCard'; 
 import '../components/ProductCard.css';
+import RPCDebugger from '../components/RPCDebugger';
 
 function KasirPage() {
     // State untuk menu kopi
@@ -41,49 +42,87 @@ function KasirPage() {
                 if (recipeError) throw recipeError;
 
                 if (recipes && recipes.length > 0) {
-                    // MENU COFFEE - pakai calculate_menu_prices
-                    const { data: prices, error: rpcError } = await supabase.rpc(
-                        'calculate_menu_prices',
-                        { p_menu_item_id: item.id }
-                    );
+                    // MENU COFFEE - coba pakai RPC function, kalau gagal hitung manual
+                    try {
+                        const { data: prices, error: rpcError } = await supabase.rpc(
+                            'calculate_menu_prices',
+                            { p_menu_item_id: item.id }
+                        );
 
-                    if (rpcError) throw rpcError;
+                        if (rpcError) throw rpcError;
 
-                    prices.forEach(priceInfo => {
+                        prices.forEach(priceInfo => {
+                            finalMenu.push({
+                                display_id: `${item.id}-${priceInfo.ingredient_id}`,
+                                menu_name: item.name,
+                                ingredient_name: priceInfo.ingredient_name,
+                                item_to_cart: {
+                                    id: `menu-${item.id}-${priceInfo.ingredient_id}`,
+                                    name: `${item.name} (${priceInfo.ingredient_name})`,
+                                    price: priceInfo.sell_price,
+                                    hpp: priceInfo.hpp,
+                                    type: 'MENU'
+                                }
+                            });
+                        });
+                    } catch (rpcError) {
+                        console.warn('RPC function failed, using fallback calculation for', item.name);
+                        // Fallback: hitung manual
+                        const fallbackPrice = Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
+                        
                         finalMenu.push({
-                            display_id: `${item.id}-${priceInfo.ingredient_id}`,
+                            display_id: `${item.id}-fallback`,
                             menu_name: item.name,
-                            ingredient_name: priceInfo.ingredient_name,
+                            ingredient_name: 'Coffee (Manual)',
                             item_to_cart: {
-                                id: `menu-${item.id}-${priceInfo.ingredient_id}`,
-                                name: `${item.name} (${priceInfo.ingredient_name})`,
-                                price: priceInfo.sell_price,
-                                hpp: priceInfo.hpp,
+                                id: `menu-${item.id}-fallback`,
+                                name: `${item.name} (Manual Calc)`,
+                                price: fallbackPrice,
+                                hpp: item.fixed_cost,
                                 type: 'MENU'
                             }
                         });
-                    });
+                    }
                 } else {
-                    // MENU NON-COFFEE - pakai calculate_non_coffee_price
-                    const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
-                        'calculate_non_coffee_price',
-                        { p_menu_item_id: item.id }
-                    );
+                    // MENU NON-COFFEE - coba pakai RPC function, kalau gagal hitung manual
+                    try {
+                        const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
+                            'calculate_non_coffee_price',
+                            { p_menu_item_id: item.id }
+                        );
 
-                    if (nonCoffeeError) throw nonCoffeeError;
+                        if (nonCoffeeError) throw nonCoffeeError;
 
-                    finalMenu.push({
-                        display_id: `${item.id}-non-coffee`,
-                        menu_name: item.name,
-                        ingredient_name: 'Non-Coffee',
-                        item_to_cart: {
-                            id: `menu-${item.id}-non-coffee`,
-                            name: item.name,
-                            price: nonCoffeePrice,
-                            hpp: item.fixed_cost,
-                            type: 'MENU'
-                        }
-                    });
+                        finalMenu.push({
+                            display_id: `${item.id}-non-coffee`,
+                            menu_name: item.name,
+                            ingredient_name: 'Non-Coffee',
+                            item_to_cart: {
+                                id: `menu-${item.id}-non-coffee`,
+                                name: item.name,
+                                price: nonCoffeePrice,
+                                hpp: item.fixed_cost,
+                                type: 'MENU'
+                            }
+                        });
+                    } catch (rpcError) {
+                        console.warn('RPC function failed, using fallback calculation for', item.name);
+                        // Fallback: hitung manual
+                        const fallbackPrice = Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
+                        
+                        finalMenu.push({
+                            display_id: `${item.id}-non-coffee-fallback`,
+                            menu_name: item.name,
+                            ingredient_name: 'Non-Coffee (Manual)',
+                            item_to_cart: {
+                                id: `menu-${item.id}-non-coffee-fallback`,
+                                name: `${item.name} (Manual Calc)`,
+                                price: fallbackPrice,
+                                hpp: item.fixed_cost,
+                                type: 'MENU'
+                            }
+                        });
+                    }
                 }
             }
             
@@ -335,6 +374,9 @@ function KasirPage() {
             </div>
 
             <Cart cart={cart} onOrderSuccess={clearCart} />
+            
+            {/* RPC Debugger - hanya tampil saat development */}
+            {process.env.NODE_ENV === 'development' && <RPCDebugger />}
         </div>
     );
 }
