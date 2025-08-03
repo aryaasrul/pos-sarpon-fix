@@ -1,253 +1,135 @@
-// src/pages/BooksPage.jsx - Fixed untuk Schema Database Baru
+// src/pages/BooksPage.jsx - Updated dengan styling seragam
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import toast from 'react-hot-toast';
+import './BooksPage.css';
 
-function BookFormModal({ isOpen, onClose, onSave, book }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    isbn: '',
-    purchase_price: '',
-    selling_price: '',
-    stock_quantity: '',
-    description: ''
-  });
+// Book Form Modal Component
+function BookFormModal({ isOpen, onClose, onSave, book = null }) {
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [isbn, setIsbn] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
+  const [sellingPrice, setSellingPrice] = useState('');
+  const [stockQuantity, setStockQuantity] = useState('');
 
   useEffect(() => {
     if (book) {
-      setFormData({ 
-        ...book, 
-        purchase_price: book.purchase_price || '', 
-        selling_price: book.selling_price || '',
-        stock_quantity: book.stock_quantity || ''
-      });
+      setTitle(book.title || '');
+      setAuthor(book.author || '');
+      setIsbn(book.isbn || '');
+      setPurchasePrice(book.purchase_price?.toString() || '');
+      setSellingPrice(book.selling_price?.toString() || '');
+      setStockQuantity(book.stock_quantity?.toString() || '');
     } else {
-      setFormData({
-        title: '', 
-        author: '', 
-        isbn: '', 
-        purchase_price: '', 
-        selling_price: '', 
-        stock_quantity: '', 
-        description: ''
-      });
+      setTitle('');
+      setAuthor('');
+      setIsbn('');
+      setPurchasePrice('');
+      setSellingPrice('');
+      setStockQuantity('');
     }
   }, [book, isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dataToSave = {
-      ...formData,
-      purchase_price: parseInt(formData.purchase_price) || 0,
-      selling_price: parseInt(formData.selling_price) || 0,
-      stock_quantity: parseInt(formData.stock_quantity) || 0
-    };
-    onSave(dataToSave);
-  };
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    onSave({
+      title,
+      author,
+      isbn,
+      purchase_price: parseFloat(purchasePrice) || 0,
+      selling_price: parseFloat(sellingPrice) || 0,
+      stock_quantity: parseInt(stockQuantity) || 0
+    });
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      <div className="modal-content" style={{ 
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '12px',
-        maxWidth: '700px', 
-        maxHeight: '90vh', 
-        overflowY: 'auto',
-        width: '90%'
-      }}>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>{book ? 'Edit Buku' : 'Tambah Buku Baru'}</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <img src="/icons/Close-Square.svg" alt="Close" />
+          </button>
+        </div>
+        
         <form onSubmit={handleSubmit}>
-          <h2 style={{ marginBottom: '20px' }}>{book ? 'Edit' : 'Tambah'} Buku</h2>
+          <div className="form-group">
+            <label>Judul Buku *</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Masukkan judul buku"
+              required
+            />
+          </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="form-group">
+            <label>Penulis</label>
+            <input
+              type="text"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="Masukkan nama penulis"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>ISBN</label>
+            <input
+              type="text"
+              value={isbn}
+              onChange={(e) => setIsbn(e.target.value)}
+              placeholder="Masukkan ISBN"
+            />
+          </div>
+          
+          <div className="form-row">
             <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Judul Buku *</label>
-              <input 
-                type="text" 
-                value={formData.title} 
-                onChange={e => handleInputChange('title', e.target.value)} 
-                required 
-                placeholder="Masukkan judul buku"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Penulis</label>
-              <input 
-                type="text" 
-                value={formData.author} 
-                onChange={e => handleInputChange('author', e.target.value)} 
-                placeholder="Nama penulis"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>ISBN</label>
-              <input 
-                type="text" 
-                value={formData.isbn} 
-                onChange={e => handleInputChange('isbn', e.target.value)} 
-                placeholder="978-XXXXXXXXXX"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Stok Awal/Tambah Stok</label>
-              <input 
-                type="number" 
-                value={formData.stock_quantity} 
-                onChange={e => handleInputChange('stock_quantity', e.target.value)} 
-                required 
+              <label>Harga Beli *</label>
+              <input
+                type="number"
+                value={purchasePrice}
+                onChange={(e) => setPurchasePrice(e.target.value)}
+                placeholder="0"
                 min="0"
-                placeholder="Jumlah stok"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
+                required
               />
             </div>
+            
             <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Harga Beli (Rp) *</label>
-              <input 
-                type="number" 
-                value={formData.purchase_price} 
-                onChange={e => handleInputChange('purchase_price', e.target.value)} 
-                required 
+              <label>Harga Jual *</label>
+              <input
+                type="number"
+                value={sellingPrice}
+                onChange={(e) => setSellingPrice(e.target.value)}
+                placeholder="0"
                 min="0"
-                placeholder="Harga pembelian"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Harga Jual (Rp) *</label>
-              <input 
-                type="number" 
-                value={formData.selling_price} 
-                onChange={e => handleInputChange('selling_price', e.target.value)} 
-                required 
-                min="0"
-                placeholder="Harga penjualan"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                  fontSize: '14px'
-                }}
+                required
               />
             </div>
           </div>
           
-          <div className="form-group" style={{ gridColumn: 'span 2', marginTop: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Deskripsi</label>
-            <textarea 
-              value={formData.description} 
-              onChange={e => handleInputChange('description', e.target.value)}
-              rows="3"
-              placeholder="Deskripsi buku (opsional)"
-              style={{ 
-                width: '100%', 
-                resize: 'vertical', 
-                padding: '10px', 
-                border: '1px solid #ccc', 
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
+          <div className="form-group">
+            <label>Stok Awal</label>
+            <input
+              type="number"
+              value={stockQuantity}
+              onChange={(e) => setStockQuantity(e.target.value)}
+              placeholder="0"
+              min="0"
             />
           </div>
 
-          {formData.purchase_price && formData.selling_price && (
-            <div style={{ 
-              padding: '10px', 
-              backgroundColor: '#e8f5e8', 
-              borderRadius: '4px', 
-              marginTop: '15px' 
-            }}>
-              <strong>Preview Keuntungan: Rp {(parseInt(formData.selling_price) - parseInt(formData.purchase_price)).toLocaleString('id-ID')}</strong>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-            <button 
-              type="button" 
-              onClick={onClose}
-              style={{
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
               Batal
             </button>
-            <button 
-              type="submit"
-              style={{
-                backgroundColor: '#198754',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Simpan
+            <button type="submit" className="save-btn">
+              {book ? 'Update' : 'Simpan'}
             </button>
           </div>
         </form>
@@ -256,114 +138,74 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
   );
 }
 
-function StockModal({ isOpen, onClose, onSave, book }) {
-  const [additionalStock, setAdditionalStock] = useState('');
+// Add Stock Modal Component
+function AddStockModal({ isOpen, onClose, onSave, book }) {
+  const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuantity('');
+      setNotes('');
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      book_id: book.id,
-      quantity: parseInt(additionalStock),
-      notes
-    });
-    setAdditionalStock('');
-    setNotes('');
+    if (quantity && parseInt(quantity) > 0) {
+      onSave(parseInt(quantity), notes);
+    }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !book) return null;
 
   return (
-    <div className="modal-overlay" style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      <div className="modal-content" style={{ 
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '12px',
-        maxWidth: '400px',
-        width: '90%'
-      }}>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>Tambah Stok: {book.title}</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <img src="/icons/Close-Square.svg" alt="Close" />
+          </button>
+        </div>
+        
         <form onSubmit={handleSubmit}>
-          <h2 style={{ marginBottom: '15px' }}>Tambah Stok: {book?.title}</h2>
-          <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>Stok saat ini: {book?.stock_quantity} buah</p>
-          
-          <div className="form-group" style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Jumlah Stok Tambahan *</label>
-            <input 
-              type="number" 
-              value={additionalStock} 
-              onChange={e => setAdditionalStock(e.target.value)} 
-              required 
-              min="1"
-              placeholder="Jumlah yang akan ditambahkan"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                fontSize: '14px'
-              }}
+          <div className="form-group">
+            <label>Stok Saat Ini</label>
+            <input
+              type="text"
+              value={`${book.stock_quantity} unit`}
+              disabled
             />
           </div>
           
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Catatan</label>
-            <textarea 
-              value={notes} 
-              onChange={e => setNotes(e.target.value)}
+          <div className="form-group">
+            <label>Tambah Stok *</label>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Jumlah yang akan ditambahkan"
+              min="1"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Catatan</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               rows="2"
               placeholder="Catatan tambahan (opsional)"
-              style={{ 
-                width: '100%', 
-                resize: 'vertical', 
-                padding: '10px', 
-                border: '1px solid #ccc', 
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button 
-              type="button" 
-              onClick={onClose}
-              style={{
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
               Batal
             </button>
-            <button 
-              type="submit"
-              style={{
-                backgroundColor: '#198754',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
+            <button type="submit" className="save-btn">
               Tambah Stok
             </button>
           </div>
@@ -373,170 +215,106 @@ function StockModal({ isOpen, onClose, onSave, book }) {
   );
 }
 
+// Main BooksPage Component
 function BooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('created_at');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
 
-  const fetchBooks = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    setError(null);
-    
+  const fetchBooks = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
         .from('books')
         .select('*')
         .order(sortBy, { ascending: sortBy === 'title' });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(`Gagal memuat buku: ${error.message}`);
-      }
-
-      console.log('Fetched books:', data?.length || 0, 'books');
+      
+      if (fetchError) throw fetchError;
+      
       setBooks(data || []);
-      
-    } catch (error) {
-      console.error('Error fetching books:', error);
-      setError(error.message);
-      toast.error(error.message);
-      
-      if (sortBy !== 'created_at') {
-        try {
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('books')
-            .select('*');
-            
-          if (!fallbackError && fallbackData) {
-            setBooks(fallbackData);
-            setError(null);
-            toast.success('Data berhasil dimuat (mode fallback)');
-          }
-        } catch (fallbackErr) {
-          console.error('Fallback fetch also failed:', fallbackErr);
-        }
-      }
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      setError(err.message);
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBooks();
-    
-    const interval = setInterval(() => {
-      fetchBooks(false);
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, [sortBy]);
 
-  const handleSave = async (formData) => {
+  const handleSaveBook = async (bookData) => {
     try {
-      const dataToSave = { 
-        ...formData,
-        updated_at: new Date().toISOString()
-      };
-
-      let result;
+      let error;
+      
       if (selectedBook) {
-        result = await supabase
+        const { error: updateError } = await supabase
           .from('books')
-          .update(dataToSave)
-          .eq('id', selectedBook.id)
-          .select();
-          
-        if (result.error) throw result.error;
-        toast.success('Buku berhasil diperbarui!');
+          .update(bookData)
+          .eq('id', selectedBook.id);
+        error = updateError;
       } else {
-        result = await supabase
+        const { error: insertError } = await supabase
           .from('books')
-          .insert([dataToSave])
-          .select();
-          
-        if (result.error) throw result.error;
-        toast.success('Buku berhasil ditambahkan!');
+          .insert([bookData]);
+        error = insertError;
       }
-
-      setIsModalOpen(false);
-      setSelectedBook(null);
-      await fetchBooks(false);
-      
-    } catch (error) {
-      console.error('Error saving book:', error);
-      
-      if (error.message.includes('permission')) {
-        toast.error('Tidak memiliki izin untuk menyimpan data. Silakan hubungi administrator.');
-      } else if (error.message.includes('network')) {
-        toast.error('Koneksi bermasalah. Periksa internet Anda.');
-      } else {
-        toast.error('Gagal menyimpan buku: ' + error.message);
-      }
-    }
-  };
-
-  // === FIXED: handleAddStock - Remove book_stock_movements ===
-  const handleAddStock = async (stockData) => {
-    try {
-      // === SIMPLIFIED VERSION - No stock movements tracking ===
-      
-      // Update stok langsung tanpa catat pergerakan
-      const { error: updateError } = await supabase
-        .from('books')
-        .update({ 
-          stock_quantity: selectedBook.stock_quantity + stockData.quantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', stockData.book_id);
-
-      if (updateError) throw updateError;
-
-      toast.success(`Stok berhasil ditambahkan! +${stockData.quantity} buah`);
-      setIsStockModalOpen(false);
-      setSelectedBook(null);
-      fetchBooks(); // Refresh data
-      
-    } catch (error) {
-      console.error('Error adding stock:', error);
-      toast.error('Gagal menambah stok: ' + error.message);
-    }
-  };
-
-  const handleDelete = async (book) => {
-    const confirmMessage = `Yakin ingin menghapus buku "${book.title}"?\n\n⚠️ Data ini akan terhapus permanen dan tidak bisa dikembalikan!`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('books')
-        .delete()
-        .eq('id', book.id);
 
       if (error) throw error;
       
-      toast.success(`Buku "${book.title}" berhasil dihapus!`);
-      await fetchBooks(false);
-      
-    } catch (error) {
-      console.error('Error deleting book:', error);
-      toast.error('Gagal menghapus buku: ' + error.message);
+      setIsModalOpen(false);
+      setSelectedBook(null);
+      fetchBooks();
+    } catch (err) {
+      console.error('Error saving book:', err);
+      alert(`Gagal menyimpan buku: ${err.message}`);
     }
   };
 
-  const handleRefresh = () => {
-    toast.loading('Menyinkronkan data...', { id: 'refresh' });
-    fetchBooks().then(() => {
-      toast.success('Data berhasil disinkronkan!', { id: 'refresh' });
-    });
+  const handleDeleteBook = async (book) => {
+    if (window.confirm(`Yakin ingin menghapus buku "${book.title}"?`)) {
+      try {
+        const { error } = await supabase
+          .from('books')
+          .delete()
+          .eq('id', book.id);
+
+        if (error) throw error;
+        
+        fetchBooks();
+      } catch (err) {
+        console.error('Error deleting book:', err);
+        alert(`Gagal menghapus buku: ${err.message}`);
+      }
+    }
+  };
+
+  const handleAddStock = async (quantity, notes) => {
+    try {
+      const newStock = selectedBook.stock_quantity + quantity;
+      
+      const { error } = await supabase
+        .from('books')
+        .update({ stock_quantity: newStock })
+        .eq('id', selectedBook.id);
+
+      if (error) throw error;
+      
+      setIsStockModalOpen(false);
+      setSelectedBook(null);
+      fetchBooks();
+    } catch (err) {
+      console.error('Error adding stock:', err);
+      alert(`Gagal menambah stok: ${err.message}`);
+    }
   };
 
   const filteredBooks = books.filter(book => {
@@ -546,6 +324,7 @@ function BooksPage() {
     return matchesSearch;
   });
 
+  // Calculate statistics
   const totalBooks = books.length;
   const totalStock = books.reduce((sum, book) => sum + book.stock_quantity, 0);
   const totalValue = books.reduce((sum, book) => sum + (book.selling_price * book.stock_quantity), 0);
@@ -553,41 +332,19 @@ function BooksPage() {
 
   if (error && !books.length) {
     return (
-      <div style={{ 
-        padding: '40px 20px', 
-        textAlign: 'center',
-        color: '#dc3545'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
-        <h3>Terjadi Kesalahan</h3>
-        <p style={{ marginBottom: '20px' }}>{error}</p>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button 
-            onClick={() => fetchBooks()}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Coba Lagi
-          </button>
-          <button 
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Refresh Halaman
-          </button>
+      <div className="books-page">
+        <div className="error-state">
+          <div className="error-icon">⚠️</div>
+          <h3>Terjadi Kesalahan</h3>
+          <p>{error}</p>
+          <div className="error-actions">
+            <button onClick={fetchBooks} className="retry-btn">
+              🔄 Coba Lagi
+            </button>
+            <button onClick={() => window.location.reload()} className="refresh-btn">
+              🔄 Refresh Halaman
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -595,170 +352,83 @@ function BooksPage() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh',
-        flexDirection: 'column',
-        gap: '15px'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid #f3f3f3',
-          borderTop: '3px solid #000',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <span>Memuat data buku...</span>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+      <div className="books-page">
+        <div className="loading-state">
+          <div className="loading-spinner">
+            <img src="/icons/Loading.svg" alt="Loading" className="spinning" />
+          </div>
+          <p className="loading-text">Memuat data buku...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>📚 Manajemen Buku</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={handleRefresh}
-            style={{
-              padding: '10px 16px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            🔄 Sync
-          </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#000',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            + Tambah Buku
-          </button>
-        </div>
+    <div className="books-page">
+      {/* Header */}
+      <div className="books-header">
+        <h1>Manajemen Buku</h1>
+        <button onClick={() => setIsModalOpen(true)} className="btn-add-book">
+          <img src="/icons/icon-plus-input-manual.svg" alt="Tambah" />
+          <span>Tambah Buku</span>
+        </button>
       </div>
 
-      <div style={{ 
-        marginBottom: '20px',
-        padding: '8px 12px',
-        backgroundColor: books.length > 0 ? '#d4edda' : '#f8d7da',
-        color: books.length > 0 ? '#155724' : '#721c24',
-        borderRadius: '4px',
-        fontSize: '12px'
-      }}>
+      {/* Connection Status */}
+      <div className={`connection-status ${books.length > 0 ? 'connected' : 'disconnected'}`}>
         {books.length > 0 ? 
           `✅ Terhubung - ${books.length} buku dimuat` : 
           '⚠️ Belum ada data atau koneksi bermasalah'
         }
       </div>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '15px', 
-        marginBottom: '25px' 
-      }}>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{totalBooks}</h3>
-          <p style={{ margin: 0, opacity: 0.9 }}>Total Buku</p>
+      {/* Statistics Cards */}
+      <div className="stats-grid">
+        <div className="stat-card total-books">
+          <div className="stat-number">{totalBooks}</div>
+          <div className="stat-label">Total Buku</div>
         </div>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{totalStock}</h3>
-          <p style={{ margin: 0, opacity: 0.9 }}>Total Stok</p>
+        <div className="stat-card total-stock">
+          <div className="stat-number">{totalStock}</div>
+          <div className="stat-label">Total Stok</div>
         </div>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 5px 0', fontSize: '20px' }}>Rp {totalValue.toLocaleString('id-ID')}</h3>
-          <p style={{ margin: 0, opacity: 0.9 }}>Nilai Inventori</p>
+        <div className="stat-card total-value">
+          <div className="stat-number">Rp {totalValue.toLocaleString('id-ID')}</div>
+          <div className="stat-label">Nilai Inventori</div>
         </div>
-        <div style={{ 
-          background: lowStockBooks > 0 ? 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' : 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-          color: lowStockBooks > 0 ? 'white' : '#333',
-          padding: '20px',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{lowStockBooks}</h3>
-          <p style={{ margin: 0, opacity: 0.9 }}>Stok Rendah (≤5)</p>
+        <div className="stat-card low-stock">
+          <div className="stat-number">{lowStockBooks}</div>
+          <div className="stat-label">Stok Rendah (≤5)</div>
         </div>
       </div>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '2fr 1fr', 
-        gap: '15px', 
-        marginBottom: '20px',
-        alignItems: 'end'
-      }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Cari Buku</label>
-          <input
-            type="text"
-            placeholder="Cari judul, penulis, atau ISBN..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              border: '1px solid #ddd', 
-              borderRadius: '6px',
-              fontSize: '14px'
-            }}
-          />
+      {/* Search and Filter */}
+      <div className="search-filter-container">
+        <div className="search-group">
+          <label>Cari Buku</label>
+          <div className="search-input-container">
+            <img src="/icons/Search.svg" alt="Search" className="search-icon" />
+            <input
+              type="text"
+              placeholder="Cari judul, penulis, atau ISBN..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                className="clear-search-btn"
+                onClick={() => setSearchTerm('')}
+              >
+                <img src="/icons/Close-Square.svg" alt="Clear" />
+              </button>
+            )}
+          </div>
         </div>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Urutkan</label>
+        <div className="sort-group">
+          <label>Urutkan</label>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              border: '1px solid #ddd', 
-              borderRadius: '6px',
-              fontSize: '14px'
-            }}
           >
             <option value="created_at">Terbaru</option>
             <option value="title">Judul A-Z</option>
@@ -767,19 +437,14 @@ function BooksPage() {
         </div>
       </div>
 
+      {/* Content */}
       {filteredBooks.length === 0 ? (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '60px 20px', 
-          backgroundColor: '#f8f9fa',
-          borderRadius: '12px',
-          border: '2px dashed #dee2e6'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '15px' }}>📚</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#495057' }}>
+        <div className="empty-state">
+          <div className="empty-icon">📚</div>
+          <h3>
             {searchTerm ? 'Tidak ditemukan' : 'Belum ada buku'}
           </h3>
-          <p style={{ margin: '0 0 20px 0', color: '#6c757d' }}>
+          <p>
             {searchTerm ? 
               'Coba ubah kata kunci pencarian' : 
               'Mulai tambahkan buku pertama untuk koleksi toko Anda'
@@ -788,188 +453,90 @@ function BooksPage() {
           {!searchTerm && (
             <button 
               onClick={() => setIsModalOpen(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#000',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
+              className="add-first-book-btn"
             >
               + Tambah Buku Pertama
             </button>
           )}
         </div>
       ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-          gap: '20px' 
-        }}>
+        <div className="books-grid">
           {filteredBooks.map(book => (
-            <div key={book.id} style={{
-              border: '1px solid #e9ecef',
-              borderRadius: '12px',
-              padding: '20px',
-              backgroundColor: 'white',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-              transition: 'all 0.2s ease',
-              position: 'relative'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
-            }}
-            >
+            <div key={book.id} className="book-card">
+              {/* Stock Badge */}
               {book.stock_quantity <= 5 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  background: book.stock_quantity === 0 ? '#dc3545' : '#ffc107',
-                  color: book.stock_quantity === 0 ? 'white' : '#000',
-                  padding: '4px 8px',
-                  borderRadius: '12px',
-                  fontSize: '10px',
-                  fontWeight: 'bold'
-                }}>
+                <div className={`stock-badge ${book.stock_quantity === 0 ? 'out-of-stock' : 'low-stock'}`}>
                   {book.stock_quantity === 0 ? 'HABIS' : 'STOK RENDAH'}
                 </div>
               )}
 
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ 
-                  margin: '0 0 8px 0', 
-                  fontSize: '18px', 
-                  lineHeight: '1.3',
-                  color: '#212529'
-                }}>
-                  {book.title}
-                </h3>
+              {/* Book Info */}
+              <div className="book-info">
+                <h3 className="book-title">{book.title}</h3>
                 {book.author && (
-                  <p style={{ 
-                    margin: '0 0 5px 0', 
-                    color: '#6c757d', 
-                    fontSize: '14px',
-                    fontStyle: 'italic'
-                  }}>
-                    oleh {book.author}
-                  </p>
+                  <p className="book-author">oleh {book.author}</p>
+                )}
+                {book.isbn && (
+                  <p className="book-isbn">ISBN: {book.isbn}</p>
                 )}
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr 1fr', 
-                  gap: '10px',
-                  fontSize: '14px'
-                }}>
-                  <div>
-                    <span style={{ color: '#6c757d' }}>Harga Beli:</span>
-                    <div style={{ fontWeight: 'bold', color: '#dc3545' }}>
-                      Rp {book.purchase_price.toLocaleString('id-ID')}
-                    </div>
+              {/* Book Details */}
+              <div className="book-details">
+                <div className="detail-item">
+                  <div className="detail-label">Harga Beli</div>
+                  <div className="detail-value price-buy">
+                    Rp {book.purchase_price.toLocaleString('id-ID')}
                   </div>
-                  <div>
-                    <span style={{ color: '#6c757d' }}>Harga Jual:</span>
-                    <div style={{ fontWeight: 'bold', color: '#198754' }}>
-                      Rp {book.selling_price.toLocaleString('id-ID')}
-                    </div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Harga Jual</div>
+                  <div className="detail-value price-sell">
+                    Rp {book.selling_price.toLocaleString('id-ID')}
                   </div>
-                  <div>
-                    <span style={{ color: '#6c757d' }}>Stok:</span>
-                    <div style={{ 
-                      fontWeight: 'bold',
-                      color: book.stock_quantity > 5 ? '#198754' : book.stock_quantity > 0 ? '#ffc107' : '#dc3545'
-                    }}>
-                      {book.stock_quantity} buah
-                    </div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Stok</div>
+                  <div className={`detail-value ${
+                    book.stock_quantity > 5 ? 'stock-good' : 
+                    book.stock_quantity > 0 ? 'stock-low' : 'stock-out'
+                  }`}>
+                    {book.stock_quantity} unit
                   </div>
-                  <div>
-                    <span style={{ color: '#6c757d' }}>Profit/unit:</span>
-                    <div style={{ fontWeight: 'bold', color: '#0d6efd' }}>
-                      Rp {(book.selling_price - book.purchase_price).toLocaleString('id-ID')}
-                    </div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Profit/Unit</div>
+                  <div className="detail-value">
+                    Rp {(book.selling_price - book.purchase_price).toLocaleString('id-ID')}
                   </div>
                 </div>
               </div>
 
-              {book.description && (
-                <div style={{ 
-                  marginBottom: '15px',
-                  padding: '12px',
-                  backgroundColor: '#f8f9fa',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  color: '#495057',
-                  lineHeight: '1.4'
-                }}>
-                  {book.description.length > 120 ? 
-                    `${book.description.substring(0, 120)}...` : 
-                    book.description
-                  }
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {/* Actions */}
+              <div className="book-actions">
                 <button 
                   onClick={() => {
                     setSelectedBook(book);
                     setIsModalOpen(true);
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    backgroundColor: '#0d6efd',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                  }}
+                  className="edit-book-btn"
                 >
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button 
                   onClick={() => {
                     setSelectedBook(book);
                     setIsStockModalOpen(true);
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    backgroundColor: '#198754',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                  }}
+                  className="add-stock-btn"
                 >
-                  📦 +Stok
+                  + Stok
                 </button>
                 <button 
-                  onClick={() => handleDelete(book)}
-                  style={{
-                    padding: '8px 12px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                  }}
+                  onClick={() => handleDeleteBook(book)}
+                  className="delete-book-btn"
                 >
-                  🗑️
+                  Hapus
                 </button>
               </div>
             </div>
@@ -977,17 +544,18 @@ function BooksPage() {
         </div>
       )}
 
+      {/* Modals */}
       <BookFormModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setSelectedBook(null);
         }}
-        onSave={handleSave}
+        onSave={handleSaveBook}
         book={selectedBook}
       />
 
-      <StockModal
+      <AddStockModal
         isOpen={isStockModalOpen}
         onClose={() => {
           setIsStockModalOpen(false);

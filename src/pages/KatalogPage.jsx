@@ -1,10 +1,10 @@
-// src/pages/KatalogPage.jsx (Versi BARU dengan Supabase & Konsep Dinamis)
+// src/pages/KatalogPage.jsx - Updated dengan styling seragam dengan KasirPage
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import IngredientFormModal from '../components/IngredientFormModal';
 import MenuItemFormModal from '../components/MenuItemFormModal';
-import '../Katalog.css';
+import './KatalogPage.css';
 
 function KatalogPage() {
   // State untuk data
@@ -14,6 +14,7 @@ function KatalogPage() {
 
   // State untuk UI
   const [activeTab, setActiveTab] = useState('ingredients'); // 'ingredients' or 'menuItems'
+  const [searchTerm, setSearchTerm] = useState('');
   const [isIngredientModalOpen, setIngredientModalOpen] = useState(false);
   const [isMenuItemModalOpen, setMenuItemModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null); // Bisa ingredient atau menu item
@@ -24,11 +25,11 @@ function KatalogPage() {
     try {
       const { data: ingredientsData, error: ingredientsError } = await supabase.from('ingredients').select('*');
       if (ingredientsError) throw ingredientsError;
-      setIngredients(ingredientsData);
+      setIngredients(ingredientsData || []);
 
       const { data: menuItemsData, error: menuItemsError } = await supabase.from('menu_items').select('*');
       if (menuItemsError) throw menuItemsError;
-      setMenuItems(menuItemsData);
+      setMenuItems(menuItemsData || []);
 
     } catch (error) {
       console.error("Gagal mengambil data katalog:", error);
@@ -40,6 +41,16 @@ function KatalogPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Filter data berdasarkan pencarian
+  const filteredData = () => {
+    const data = activeTab === 'ingredients' ? ingredients : menuItems;
+    if (!searchTerm) return data;
+    
+    return data.filter(item =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
 
   // Handler untuk membuka modal
   const handleOpenModal = (item = null) => {
@@ -82,21 +93,24 @@ function KatalogPage() {
   
   // Handler untuk menghapus data
   const handleDelete = async (item) => {
-    if (window.confirm(`Yakin ingin menghapus "${item.name}"?`)) {
-        const table = activeTab === 'ingredients' ? 'ingredients' : 'menu_items';
-        const { error } = await supabase.from(table).delete().eq('id', item.id);
-        
-        if (error) {
-            alert(error.message);
-        } else {
-            fetchData();
-        }
+    const itemType = activeTab === 'ingredients' ? 'bahan baku' : 'menu';
+    if (window.confirm(`Yakin ingin menghapus ${itemType} "${item.name}"?`)) {
+      const table = activeTab === 'ingredients' ? 'ingredients' : 'menu_items';
+      const { error } = await supabase.from(table).delete().eq('id', item.id);
+      
+      if (error) {
+        alert(error.message);
+      } else {
+        fetchData();
+      }
     }
   };
 
+  const currentData = filteredData();
 
   return (
     <div className="katalog-page">
+      {/* Header */}
       <div className="katalog-header">
         <h1>Katalog</h1>
         <button onClick={() => handleOpenModal()} className="btn-add-product">
@@ -105,51 +119,162 @@ function KatalogPage() {
         </button>
       </div>
 
-      {/* Navigasi Tab */}
-      <div className="tab-container" style={{ marginBottom: '20px' }}>
-          <button className={`tab-btn ${activeTab === 'ingredients' ? 'active' : ''}`} onClick={() => setActiveTab('ingredients')}>
-            Bahan Baku
-          </button>
-          <button className={`tab-btn ${activeTab === 'menuItems' ? 'active' : ''}`} onClick={() => setActiveTab('menuItems')}>
-            Menu Jualan
-          </button>
+      {/* Search Bar */}
+      <div className="search-container">
+        <div className="search-bar">
+          <div className="search-input-container">
+            <img src="/icons/Search.svg" alt="Search" className="search-icon" />
+            <input
+              type="text"
+              placeholder={`Cari ${activeTab === 'ingredients' ? 'bahan baku' : 'menu'}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                className="clear-search-btn"
+                onClick={() => setSearchTerm('')}
+              >
+                <img src="/icons/Close-Square.svg" alt="Clear" />
+              </button>
+            )}
+          </div>
+        </div>
+        <button className="btn-filter">
+          <img src="/icons/Filter.svg" alt="Filter" />
+        </button>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="tab-container">
+        <button 
+          className={`tab-btn ${activeTab === 'ingredients' ? 'active' : ''}`} 
+          onClick={() => {
+            setActiveTab('ingredients');
+            setSearchTerm('');
+          }}
+        >
+          <img src="/icons/database-icon.svg" alt="Bahan Baku" className="tab-icon" />
+          Bahan Baku ({ingredients.length})
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'menuItems' ? 'active' : ''}`} 
+          onClick={() => {
+            setActiveTab('menuItems');
+            setSearchTerm('');
+          }}
+        >
+          <img src="/icons/laporan-icon.svg" alt="Menu" className="tab-icon" />
+          Menu Jualan ({menuItems.length})
+        </button>
       </div>
       
-      {loading && <div>Memuat data...</div>}
+      {/* Loading State */}
+      {loading && (
+        <div className="loading-state">
+          <div className="loading-spinner">
+            <img src="/icons/Loading.svg" alt="Loading" className="spinning" />
+          </div>
+          <p style={{ color: '#666', fontFamily: 'Axiforma', fontWeight: '500' }}>
+            Memuat data katalog...
+          </p>
+        </div>
+      )}
 
-      {/* Tampilan Konten berdasarkan Tab Aktif */}
-      <div className="katalog-grid">
-        {activeTab === 'ingredients' ? (
-          // Daftar Bahan Baku
-          ingredients.map(ing => (
-            <div key={ing.id} className="katalog-card">
-              <div className="katalog-card-details">
-                <h3>{ing.name}</h3>
-                <p>Rp {ing.purchase_price.toLocaleString('id-ID')} / {ing.pack_size_grams}g</p>
-              </div>
-              <div>
-                <button onClick={() => handleOpenModal(ing)} style={{marginRight: '10px'}}>Edit</button>
-                <button onClick={() => handleDelete(ing)}>Hapus</button>
-              </div>
+      {/* Content */}
+      {!loading && (
+        <>
+          {currentData.length === 0 ? (
+            <div className="empty-state">
+              <img 
+                src={activeTab === 'ingredients' ? "/icons/database-icon.svg" : "/icons/laporan-icon.svg"} 
+                alt="Empty" 
+                className="empty-icon" 
+              />
+              <h3>
+                {searchTerm 
+                  ? `Tidak ditemukan "${searchTerm}"` 
+                  : `Belum ada ${activeTab === 'ingredients' ? 'bahan baku' : 'menu'}`
+                }
+              </h3>
+              <p>
+                {searchTerm 
+                  ? `Coba kata kunci lain untuk ${activeTab === 'ingredients' ? 'bahan baku' : 'menu'}`
+                  : `Mulai tambahkan ${activeTab === 'ingredients' ? 'bahan baku' : 'menu'} pertama Anda`
+                }
+              </p>
+              {!searchTerm && (
+                <button onClick={() => handleOpenModal()} className="add-first-item-btn">
+                  <img src="/icons/icon-plus-input-manual.svg" alt="Tambah" />
+                  Tambah {activeTab === 'ingredients' ? 'Bahan Baku' : 'Menu'} Pertama
+                </button>
+              )}
             </div>
-          ))
-        ) : (
-          // Daftar Menu Jualan
-          menuItems.map(item => (
-            <div key={item.id} className="katalog-card">
-              <div className="katalog-card-details">
-                <h3>{item.name}</h3>
-                <p>Biaya Tetap: Rp {item.fixed_cost.toLocaleString('id-ID')}</p>
-              </div>
-              <div>
-                <button onClick={() => handleOpenModal(item)} style={{marginRight: '10px'}}>Edit</button>
-                <button onClick={() => handleDelete(item)}>Hapus</button>
-              </div>
+          ) : (
+            <div className="katalog-grid">
+              {activeTab === 'ingredients' ? (
+                // Daftar Bahan Baku
+                currentData.map(ingredient => (
+                  <div key={ingredient.id} className="katalog-card">
+                    <div className="katalog-card-image-placeholder"></div>
+                    <div className="katalog-card-details">
+                      <h3>{ingredient.name}</h3>
+                      <p>Rp {ingredient.purchase_price?.toLocaleString('id-ID') || '0'} / {ingredient.pack_size_grams || 0}g</p>
+                      <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                        HPP: Rp {ingredient.hpp?.toLocaleString('id-ID') || '0'} per gram
+                      </p>
+                    </div>
+                    <div className="katalog-card-actions">
+                      <button 
+                        onClick={() => handleOpenModal(ingredient)} 
+                        className="edit-btn"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(ingredient)}
+                        className="delete-btn"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Daftar Menu Jualan
+                currentData.map(menuItem => (
+                  <div key={menuItem.id} className="katalog-card">
+                    <div className="katalog-card-image-placeholder"></div>
+                    <div className="katalog-card-details">
+                      <h3>{menuItem.name}</h3>
+                      <p>Biaya Tetap: Rp {menuItem.fixed_cost?.toLocaleString('id-ID') || '0'}</p>
+                      <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                        Kategori: {menuItem.category || 'Tidak dikategorikan'}
+                      </p>
+                    </div>
+                    <div className="katalog-card-actions">
+                      <button 
+                        onClick={() => handleOpenModal(menuItem)} 
+                        className="edit-btn"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(menuItem)}
+                        className="delete-btn"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          ))
-        )}
-      </div>
+          )}
+        </>
+      )}
 
+      {/* Modals */}
       <IngredientFormModal 
         isOpen={isIngredientModalOpen}
         onClose={handleCloseModals}
