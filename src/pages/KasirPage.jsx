@@ -1,26 +1,75 @@
-// src/pages/KasirPage.jsx - FIXED VERSION dengan RPC Debugger
+// src/pages/KasirPage.jsx - Complete Polished UI
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient'; 
 import Cart from '../components/Cart';
 import './KasirPage.css';
 import ProductCard from '../components/ProductCard'; 
 import '../components/ProductCard.css';
-import RPCDebugger from '../components/RPCDebugger';
+
+// Polished Beans Selection Modal
+function BeansSelectionModal({ isOpen, onClose, menuItem, availableBeans, onSelectBean }) {
+  if (!isOpen || !menuItem) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content beans-modal">
+        <div className="modal-header">
+          <h2>
+            <img src="/icons/Filter.svg" alt="Beans" className="modal-icon" />
+            Pilih Beans untuk {menuItem.name}
+          </h2>
+          <button 
+            className="modal-close-btn"
+            onClick={onClose}
+          >
+            <img src="/icons/Close-Square.svg" alt="Close" />
+          </button>
+        </div>
+        
+        <div className="beans-grid">
+          {availableBeans.map(bean => (
+            <button
+              key={bean.ingredient_id}
+              className="bean-option"
+              onClick={() => onSelectBean(bean)}
+            >
+              <div className="bean-info">
+                <div className="bean-header">
+                  <img src="/icons/laporan-icon.svg" alt="Bean" className="bean-icon" />
+                  <h3>{bean.ingredient_name}</h3>
+                </div>
+                <p className="bean-hpp">
+                  <img src="/icons/database-icon.svg" alt="HPP" className="small-icon" />
+                  HPP: Rp {bean.hpp.toLocaleString('id-ID')}
+                </p>
+                <div className="bean-price">
+                  <img src="/icons/Tick-Square.svg" alt="Price" className="small-icon" />
+                  Rp {bean.sell_price.toLocaleString('id-ID')}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function KasirPage() {
-    // State untuk menu kopi
     const [displayMenu, setDisplayMenu] = useState([]);
-    // State untuk buku
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cart, setCart] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState('menu');
     
-    // State untuk tab aktif
-    const [activeTab, setActiveTab] = useState('menu'); // 'menu' atau 'books'
+    // Beans selection modal states
+    const [showBeansModal, setShowBeansModal] = useState(false);
+    const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+    const [availableBeans, setAvailableBeans] = useState([]);
 
-    // === FETCH MENU DATA (FIXED) ===
+    // === FETCH MENU DATA ===
     const fetchMenuAndPrices = useCallback(async () => {
         try {
             const { data: menuItems, error: menuError } = await supabase
@@ -32,7 +81,6 @@ function KasirPage() {
             const finalMenu = [];
 
             for (const item of menuItems) {
-                // Cek apakah menu ini coffee-based (punya recipe) atau non-coffee
                 const { data: recipes, error: recipeError } = await supabase
                     .from('recipe_ingredients')
                     .select('id')
@@ -42,87 +90,68 @@ function KasirPage() {
                 if (recipeError) throw recipeError;
 
                 if (recipes && recipes.length > 0) {
-                    // MENU COFFEE - coba pakai RPC function, kalau gagal hitung manual
-                    try {
-                        const { data: prices, error: rpcError } = await supabase.rpc(
-                            'calculate_menu_prices',
-                            { p_menu_item_id: item.id }
-                        );
+                    const { data: prices, error: rpcError } = await supabase.rpc(
+                        'calculate_coffee_menu_prices',
+                        { p_menu_item_id: item.id }
+                    );
 
-                        if (rpcError) throw rpcError;
-
-                        prices.forEach(priceInfo => {
-                            finalMenu.push({
-                                display_id: `${item.id}-${priceInfo.ingredient_id}`,
-                                menu_name: item.name,
-                                ingredient_name: priceInfo.ingredient_name,
-                                item_to_cart: {
-                                    id: `menu-${item.id}-${priceInfo.ingredient_id}`,
-                                    name: `${item.name} (${priceInfo.ingredient_name})`,
-                                    price: priceInfo.sell_price,
-                                    hpp: priceInfo.hpp,
-                                    type: 'MENU'
-                                }
-                            });
-                        });
-                    } catch (rpcError) {
-                        console.warn('RPC function failed, using fallback calculation for', item.name);
-                        // Fallback: hitung manual
-                        const fallbackPrice = Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
-                        
+                    if (!rpcError && prices && prices.length > 0) {
                         finalMenu.push({
-                            display_id: `${item.id}-fallback`,
+                            display_id: `${item.id}-coffee`,
                             menu_name: item.name,
-                            ingredient_name: 'Coffee (Manual)',
+                            category: item.category,
+                            has_variants: true,
+                            beans_options: prices,
+                            item_to_cart: {
+                                id: `menu-${item.id}`,
+                                name: item.name,
+                                price: prices[0].sell_price,
+                                hpp: prices[0].hpp,
+                                type: 'MENU',
+                                menu_item_id: item.id,
+                                requires_bean_selection: true,
+                                category: item.category
+                            }
+                        });
+                    } else {
+                        const fallbackPrice = Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
+                        finalMenu.push({
+                            display_id: `${item.id}-coffee-fallback`,
+                            menu_name: item.name,
+                            category: item.category,
+                            has_variants: false,
                             item_to_cart: {
                                 id: `menu-${item.id}-fallback`,
-                                name: `${item.name} (Manual Calc)`,
+                                name: item.name,
                                 price: fallbackPrice,
                                 hpp: item.fixed_cost,
-                                type: 'MENU'
+                                type: 'MENU',
+                                category: item.category
                             }
                         });
                     }
                 } else {
-                    // MENU NON-COFFEE - coba pakai RPC function, kalau gagal hitung manual
-                    try {
-                        const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
-                            'calculate_non_coffee_price',
-                            { p_menu_item_id: item.id }
-                        );
+                    const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
+                        'calculate_non_coffee_price',
+                        { p_menu_item_id: item.id }
+                    );
 
-                        if (nonCoffeeError) throw nonCoffeeError;
+                    const finalPrice = nonCoffeePrice || Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
 
-                        finalMenu.push({
-                            display_id: `${item.id}-non-coffee`,
-                            menu_name: item.name,
-                            ingredient_name: 'Non-Coffee',
-                            item_to_cart: {
-                                id: `menu-${item.id}-non-coffee`,
-                                name: item.name,
-                                price: nonCoffeePrice,
-                                hpp: item.fixed_cost,
-                                type: 'MENU'
-                            }
-                        });
-                    } catch (rpcError) {
-                        console.warn('RPC function failed, using fallback calculation for', item.name);
-                        // Fallback: hitung manual
-                        const fallbackPrice = Math.ceil((item.fixed_cost * (1 + item.profit_margin)) / item.rounding_up) * item.rounding_up;
-                        
-                        finalMenu.push({
-                            display_id: `${item.id}-non-coffee-fallback`,
-                            menu_name: item.name,
-                            ingredient_name: 'Non-Coffee (Manual)',
-                            item_to_cart: {
-                                id: `menu-${item.id}-non-coffee-fallback`,
-                                name: `${item.name} (Manual Calc)`,
-                                price: fallbackPrice,
-                                hpp: item.fixed_cost,
-                                type: 'MENU'
-                            }
-                        });
-                    }
+                    finalMenu.push({
+                        display_id: `${item.id}-non-coffee`,
+                        menu_name: item.name,
+                        category: item.category,
+                        has_variants: false,
+                        item_to_cart: {
+                            id: `menu-${item.id}-non-coffee`,
+                            name: item.name,
+                            price: finalPrice,
+                            hpp: item.fixed_cost,
+                            type: 'MENU',
+                            category: item.category
+                        }
+                    });
                 }
             }
             
@@ -132,13 +161,12 @@ function KasirPage() {
         }
     }, []);
 
-    // === FETCH BOOKS DATA ===
     const fetchBooks = useCallback(async () => {
         try {
             const { data: booksData, error: booksError } = await supabase
                 .from('books')
                 .select('*')
-                .gt('stock_quantity', 0) // Hanya yang masih ada stoknya
+                .gt('stock_quantity', 0)
                 .order('title');
 
             if (booksError) throw booksError;
@@ -162,7 +190,6 @@ function KasirPage() {
         }
     }, []);
 
-    // === FETCH ALL DATA ===
     const fetchAllData = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -181,12 +208,35 @@ function KasirPage() {
         fetchAllData();
     }, [fetchAllData]);
 
-    // === CART FUNCTIONS ===
+    const handleBeanSelection = (bean) => {
+        const cartItem = {
+            id: `menu-${selectedMenuItem.menu_item_id}-${bean.ingredient_id}`,
+            name: `${selectedMenuItem.name} (${bean.ingredient_name})`,
+            price: bean.sell_price,
+            hpp: bean.hpp,
+            type: 'MENU'
+        };
+
+        handleAddToCart(cartItem);
+        setShowBeansModal(false);
+        setSelectedMenuItem(null);
+        setAvailableBeans([]);
+    };
+
     const handleAddToCart = useCallback((product) => {
+        if (product.requires_bean_selection) {
+            const menuData = displayMenu.find(m => m.item_to_cart.id === product.id);
+            if (menuData && menuData.beans_options) {
+                setSelectedMenuItem(product);
+                setAvailableBeans(menuData.beans_options);
+                setShowBeansModal(true);
+                return;
+            }
+        }
+
         setCart((prevCart) => {
             const existingItem = prevCart.find((item) => item.id === product.id);
             if (existingItem) {
-                // Check stock untuk buku
                 if (product.type === 'BOOK') {
                     const newQuantity = existingItem.quantity + 1;
                     if (newQuantity > product.stock) {
@@ -203,7 +253,7 @@ function KasirPage() {
                 return [...prevCart, { ...product, quantity: 1 }];
             }
         });
-    }, []);
+    }, [displayMenu]);
 
     const handleRemoveFromCart = useCallback((product) => {
         setCart((prevCart) => {
@@ -222,14 +272,11 @@ function KasirPage() {
     
     const clearCart = useCallback(() => {
         setCart([]);
-        // Refresh data setelah transaksi (untuk update stok buku)
         fetchAllData();
     }, [fetchAllData]);
     
-    // === CURRENT DATA BERDASARKAN TAB ===
     const currentData = activeTab === 'menu' ? displayMenu : books;
     
-    // === FILTERED PRODUCTS ===
     const filteredProducts = useMemo(() => {
         if (!searchTerm.trim()) return currentData;
         
@@ -238,7 +285,6 @@ function KasirPage() {
         );
     }, [currentData, searchTerm]);
 
-    // === CART MAP ===
     const cartMap = useMemo(() => {
         return cart.reduce((map, item) => {
             map[item.id] = item.quantity;
@@ -246,59 +292,27 @@ function KasirPage() {
         }, {});
     }, [cart]);
 
-    // === ERROR STATE ===
     if (error) {
         return (
-            <div style={{ 
-                padding: '40px 20px', 
-                textAlign: 'center',
-                color: '#dc3545'
-            }}>
+            <div className="error-state">
+                <img src="/icons/Close-Square.svg" alt="Error" className="error-icon" />
                 <h3>Terjadi Kesalahan</h3>
                 <p>{error}</p>
-                <button 
-                    onClick={fetchAllData}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#000',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                    }}
-                >
+                <button onClick={fetchAllData} className="retry-btn">
+                    <img src="/icons/Swap.svg" alt="Retry" />
                     Coba Lagi
                 </button>
             </div>
         );
     }
 
-    // === LOADING STATE ===
     if (loading) {
         return (
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '50vh',
-                flexDirection: 'column',
-                gap: '15px'
-            }}>
-                <div style={{
-                    width: '40px',
-                    height: '40px',
-                    border: '3px solid #f3f3f3',
-                    borderTop: '3px solid #000',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                }}></div>
+            <div className="loading-state">
+                <div className="loading-spinner">
+                    <img src="/icons/Swap.svg" alt="Loading" className="spinning" />
+                </div>
                 <span>Memuat data...</span>
-                <style>{`
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}</style>
             </div>
         );
     }
@@ -307,47 +321,58 @@ function KasirPage() {
         <div className="kasir-page">
             {/* Search Bar */}
             <div className="search-bar">
-                <input
-                    type="text"
-                    placeholder={`Cari ${activeTab === 'menu' ? 'menu' : 'buku'}...`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <div className="search-input-container">
+                    <img src="/icons/icons-search.svg" alt="Search" className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder={`Cari ${activeTab === 'menu' ? 'menu' : 'buku'}...`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                        <button 
+                            className="clear-search-btn"
+                            onClick={() => setSearchTerm('')}
+                        >
+                            <img src="/icons/Close-Square.svg" alt="Clear" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Tab Navigation */}
             <div className="categories">
                 <button 
-                    className={`category ${activeTab === 'menu' ? 'active' : ''}`}
+                    className={`category-btn ${activeTab === 'menu' ? 'active' : ''}`}
                     onClick={() => {
                         setActiveTab('menu');
                         setSearchTerm('');
                     }}
                 >
-                    ☕ Menu ({displayMenu.length})
+                    <img src="/icons/laporan-icon.svg" alt="Menu" className="tab-icon" />
+                    Menu ({displayMenu.length})
                 </button>
                 <button 
-                    className={`category ${activeTab === 'books' ? 'active' : ''}`}
+                    className={`category-btn ${activeTab === 'books' ? 'active' : ''}`}
                     onClick={() => {
                         setActiveTab('books');
                         setSearchTerm('');
                     }}
                 >
-                    📚 Buku ({books.length})
+                    <img src="/icons/orders-icon.svg" alt="Books" className="tab-icon" />
+                    Buku ({books.length})
                 </button>
             </div>
             
             {/* Product List */}
             <div className="product-list-container">
                 {filteredProducts.length === 0 ? (
-                    <div style={{ 
-                        textAlign: 'center', 
-                        padding: '40px', 
-                        color: '#666',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '8px',
-                        margin: '20px 0'
-                    }}>
+                    <div className="empty-state">
+                        <img 
+                            src={activeTab === 'menu' ? "/icons/laporan-icon.svg" : "/icons/orders-icon.svg"} 
+                            alt="Empty" 
+                            className="empty-icon" 
+                        />
                         <h3>Tidak ada {activeTab === 'menu' ? 'menu' : 'buku'}</h3>
                         <p>
                             {searchTerm 
@@ -355,6 +380,15 @@ function KasirPage() {
                                 : `Belum ada ${activeTab === 'menu' ? 'menu' : 'buku'} yang tersedia.`
                             }
                         </p>
+                        {searchTerm && (
+                            <button 
+                                className="clear-filter-btn"
+                                onClick={() => setSearchTerm('')}
+                            >
+                                <img src="/icons/Filter.svg" alt="Clear" />
+                                Hapus Filter
+                            </button>
+                        )}
                     </div>
                 ) : (
                     filteredProducts.map(item => {
@@ -367,6 +401,7 @@ function KasirPage() {
                                 quantity={quantity}
                                 onAddToCart={() => handleAddToCart(item.item_to_cart)}
                                 onRemoveFromCart={() => handleRemoveFromCart(item.item_to_cart)}
+                                showBeansIndicator={item.has_variants}
                             />
                         );
                     })
@@ -375,8 +410,18 @@ function KasirPage() {
 
             <Cart cart={cart} onOrderSuccess={clearCart} />
             
-            {/* RPC Debugger - hanya tampil saat development */}
-            {process.env.NODE_ENV === 'development' && <RPCDebugger />}
+            {/* Beans Selection Modal */}
+            <BeansSelectionModal
+                isOpen={showBeansModal}
+                onClose={() => {
+                    setShowBeansModal(false);
+                    setSelectedMenuItem(null);
+                    setAvailableBeans([]);
+                }}
+                menuItem={selectedMenuItem}
+                availableBeans={availableBeans}
+                onSelectBean={handleBeanSelection}
+            />
         </div>
     );
 }

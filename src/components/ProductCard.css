@@ -1,28 +1,334 @@
-/* src/components/ProductCard.css */
+/* src/components/ProductCard.css - Fixed Font Import */
+
 .product-card {
-  background-color: var(--card-bg);
-  border-radius: 10px;
-  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  font-family: 'Axiforma', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.product-card:hover {
+  border-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.product-info {
+  flex: 1;
+  margin-right: 15px;
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
   display: flex;
   align-items: center;
-  gap: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+  line-height: 1.4;
 }
 
-.product-image-placeholder {
-  width: 70px;
-  height: 70px;
-  background-color: var(--secondary-bg);
-  border-radius: 8px;
-  flex-shrink: 0;
+.beans-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  color: #198754;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid #c3e6cb;
 }
 
-.product-details { flex-grow: 1; }
-.product-details h3 { font-size: 18px; margin: 0 0 5px 0; }
-.product-details p { font-size: 16px; color: var(--text-secondary); margin: 0; }
+.beans-icon {
+  width: 12px;
+  height: 12px;
+}
 
-.quantity-control { display: flex; align-items: center; gap: 15px; }
-.quantity-control button { background: none; border: none; cursor: pointer; padding: 0; }
-.quantity-control button img { width: 24px; height: 24px; }
-.quantity-control span { font-size: 16px; font-weight: bold; min-width: 20px; text-align: center; }
+.product-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c5530;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
+.price-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.product-stock {
+  font-size: 12px;
+  color: #6c757d;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+.product-actions {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 25px;
+  border: 2px solid #e9ecef;
+}
+
+.quantity-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.quantity-btn.decrease img {
+  filter: sepia(100%) saturate(200%) hue-rotate(320deg) brightness(0.8);
+}
+
+.quantity-btn.increase img {
+  filter: sepia(100%) saturate(200%) hue-rotate(90deg) brightness(0.9);
+}
+
+.quantity {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  min-width: 20px;
+  text-align: center;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #000 0%, #333 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Axiforma', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.add-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.add-icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .product-name {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  
+  .beans-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  
+  .beans-icon {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .product-price {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  
+  .price-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .product-stock {
+    font-size: 11px;
+  }
+  
+  .stock-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .quantity-controls {
+    gap: 10px;
+    padding: 6px 10px;
+  }
+  
+  .quantity-btn {
+    padding: 4px;
+  }
+  
+  .quantity-btn img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .quantity {
+    font-size: 14px;
+    min-width: 18px;
+  }
+  
+  .add-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+  
+  .add-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 16px;
+  }
+  
+  .product-info {
+    margin-right: 0;
+    width: 100%;
+  }
+  
+  .product-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animation for new items */
+.product-card.new-item {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for accessibility */
+.quantity-btn:focus,
+.add-btn:focus {
+  outline: 3px solid rgba(0, 123, 255, 0.3);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .product-card {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .quantity-controls {
+    border-width: 3px;
+  }
+  
+  .beans-badge {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .product-card,
+  .quantity-btn,
+  .add-btn {
+    transition: none;
+  }
+  
+  .product-card:hover {
+    transform: none;
+  }
+  
+  .quantity-btn:hover,
+  .add-btn:hover {
+    transform: none;
+  }
+  
+  .product-card.new-item {
+    animation: none;
+  }
+}

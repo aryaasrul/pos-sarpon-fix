@@ -1,4 +1,4 @@
-// src/pages/BooksPage.jsx - Full Complete Version
+// src/pages/BooksPage.jsx - Fixed untuk Schema Database Baru
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
@@ -7,9 +7,7 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    publisher: '',
     isbn: '',
-    category: '',
     purchase_price: '',
     selling_price: '',
     stock_quantity: '',
@@ -28,9 +26,7 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
       setFormData({
         title: '', 
         author: '', 
-        publisher: '', 
         isbn: '', 
-        category: '',
         purchase_price: '', 
         selling_price: '', 
         stock_quantity: '', 
@@ -57,76 +53,85 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div className="modal-content" style={{ 
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '12px',
+        maxWidth: '700px', 
+        maxHeight: '90vh', 
+        overflowY: 'auto',
+        width: '90%'
+      }}>
         <form onSubmit={handleSubmit}>
-          <h2>{book ? 'Edit' : 'Tambah'} Buku</h2>
+          <h2 style={{ marginBottom: '20px' }}>{book ? 'Edit' : 'Tambah'} Buku</h2>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-group">
-              <label>Judul Buku *</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Judul Buku *</label>
               <input 
                 type="text" 
                 value={formData.title} 
                 onChange={e => handleInputChange('title', e.target.value)} 
                 required 
                 placeholder="Masukkan judul buku"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
             <div className="form-group">
-              <label>Penulis</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Penulis</label>
               <input 
                 type="text" 
                 value={formData.author} 
                 onChange={e => handleInputChange('author', e.target.value)} 
                 placeholder="Nama penulis"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
             <div className="form-group">
-              <label>Penerbit</label>
-              <input 
-                type="text" 
-                value={formData.publisher} 
-                onChange={e => handleInputChange('publisher', e.target.value)} 
-                placeholder="Nama penerbit"
-              />
-            </div>
-            <div className="form-group">
-              <label>ISBN</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>ISBN</label>
               <input 
                 type="text" 
                 value={formData.isbn} 
                 onChange={e => handleInputChange('isbn', e.target.value)} 
                 placeholder="978-XXXXXXXXXX"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
             <div className="form-group">
-              <label>Kategori</label>
-              <select 
-                value={formData.category} 
-                onChange={e => handleInputChange('category', e.target.value)}
-                style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box', fontFamily: 'Axiforma, sans-serif' }}
-              >
-                <option value="">Pilih Kategori</option>
-                <option value="Novel">Novel</option>
-                <option value="Self-Help">Self-Help</option>
-                <option value="Business">Business</option>
-                <option value="Biography">Biography</option>
-                <option value="Science">Science</option>
-                <option value="Religion">Religion</option>
-                <option value="Children">Children</option>
-                <option value="Education">Education</option>
-                <option value="History">History</option>
-                <option value="Philosophy">Philosophy</option>
-                <option value="Psychology">Psychology</option>
-                <option value="Cooking">Cooking</option>
-                <option value="Art">Art</option>
-                <option value="Travel">Travel</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Stok Awal/Tambah Stok</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Stok Awal/Tambah Stok</label>
               <input 
                 type="number" 
                 value={formData.stock_quantity} 
@@ -134,10 +139,18 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
                 required 
                 min="0"
                 placeholder="Jumlah stok"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
             <div className="form-group">
-              <label>Harga Beli (Rp) *</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Harga Beli (Rp) *</label>
               <input 
                 type="number" 
                 value={formData.purchase_price} 
@@ -145,10 +158,18 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
                 required 
                 min="0"
                 placeholder="Harga pembelian"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
             <div className="form-group">
-              <label>Harga Jual (Rp) *</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Harga Jual (Rp) *</label>
               <input 
                 type="number" 
                 value={formData.selling_price} 
@@ -156,12 +177,20 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
                 required 
                 min="0"
                 placeholder="Harga penjualan"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
+                }}
               />
             </div>
           </div>
           
-          <div className="form-group" style={{ gridColumn: 'span 2' }}>
-            <label>Deskripsi</label>
+          <div className="form-group" style={{ gridColumn: 'span 2', marginTop: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Deskripsi</label>
             <textarea 
               value={formData.description} 
               onChange={e => handleInputChange('description', e.target.value)}
@@ -173,7 +202,8 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
                 padding: '10px', 
                 border: '1px solid #ccc', 
                 borderRadius: '4px',
-                fontFamily: 'Axiforma, sans-serif'
+                fontSize: '14px',
+                boxSizing: 'border-box'
               }}
             />
           </div>
@@ -183,15 +213,42 @@ function BookFormModal({ isOpen, onClose, onSave, book }) {
               padding: '10px', 
               backgroundColor: '#e8f5e8', 
               borderRadius: '4px', 
-              marginTop: '10px' 
+              marginTop: '15px' 
             }}>
               <strong>Preview Keuntungan: Rp {(parseInt(formData.selling_price) - parseInt(formData.purchase_price)).toLocaleString('id-ID')}</strong>
             </div>
           )}
 
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>Batal</button>
-            <button type="submit" className="btn-save">Simpan</button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <button 
+              type="button" 
+              onClick={onClose}
+              style={{
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Batal
+            </button>
+            <button 
+              type="submit"
+              style={{
+                backgroundColor: '#198754',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Simpan
+            </button>
           </div>
         </form>
       </div>
@@ -217,14 +274,31 @@ function StockModal({ isOpen, onClose, onSave, book }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '400px' }}>
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div className="modal-content" style={{ 
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '12px',
+        maxWidth: '400px',
+        width: '90%'
+      }}>
         <form onSubmit={handleSubmit}>
-          <h2>Tambah Stok: {book?.title}</h2>
-          <p style={{ color: '#666', fontSize: '14px' }}>Stok saat ini: {book?.stock_quantity} buah</p>
+          <h2 style={{ marginBottom: '15px' }}>Tambah Stok: {book?.title}</h2>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>Stok saat ini: {book?.stock_quantity} buah</p>
           
-          <div className="form-group">
-            <label>Jumlah Stok Tambahan *</label>
+          <div className="form-group" style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Jumlah Stok Tambahan *</label>
             <input 
               type="number" 
               value={additionalStock} 
@@ -232,11 +306,19 @@ function StockModal({ isOpen, onClose, onSave, book }) {
               required 
               min="1"
               placeholder="Jumlah yang akan ditambahkan"
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                fontSize: '14px'
+              }}
             />
           </div>
           
-          <div className="form-group">
-            <label>Catatan</label>
+          <div className="form-group" style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Catatan</label>
             <textarea 
               value={notes} 
               onChange={e => setNotes(e.target.value)}
@@ -248,14 +330,42 @@ function StockModal({ isOpen, onClose, onSave, book }) {
                 padding: '10px', 
                 border: '1px solid #ccc', 
                 borderRadius: '4px',
-                fontFamily: 'Axiforma, sans-serif'
+                fontSize: '14px',
+                boxSizing: 'border-box'
               }}
             />
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>Batal</button>
-            <button type="submit" className="btn-save">Tambah Stok</button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button 
+              type="button" 
+              onClick={onClose}
+              style={{
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Batal
+            </button>
+            <button 
+              type="submit"
+              style={{
+                backgroundColor: '#198754',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Tambah Stok
+            </button>
           </div>
         </form>
       </div>
@@ -279,16 +389,6 @@ function BooksPage() {
     setError(null);
     
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        throw new Error('Sesi tidak valid: ' + authError.message);
-      }
-      
-      if (!user) {
-        throw new Error('Silakan login untuk mengakses data buku');
-      }
-
       const { data, error } = await supabase
         .from('books')
         .select('*')
@@ -339,14 +439,8 @@ function BooksPage() {
 
   const handleSave = async (formData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("Sesi tidak valid, silakan login ulang.");
-      }
-
       const dataToSave = { 
-        ...formData, 
-        user_id: user.id,
+        ...formData,
         updated_at: new Date().toISOString()
       };
 
@@ -387,14 +481,12 @@ function BooksPage() {
     }
   };
 
+  // === FIXED: handleAddStock - Remove book_stock_movements ===
   const handleAddStock = async (stockData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Sesi tidak valid");
-        return;
-      }
-
+      // === SIMPLIFIED VERSION - No stock movements tracking ===
+      
+      // Update stok langsung tanpa catat pergerakan
       const { error: updateError } = await supabase
         .from('books')
         .update({ 
@@ -405,23 +497,11 @@ function BooksPage() {
 
       if (updateError) throw updateError;
 
-      const { error: movementError } = await supabase
-        .from('book_stock_movements')
-        .insert([{
-          book_id: stockData.book_id,
-          movement_type: 'IN',
-          quantity: stockData.quantity,
-          reference_type: 'ADJUSTMENT',
-          notes: stockData.notes || 'Manual stock addition',
-          user_id: user.id
-        }]);
-
-      if (movementError) throw movementError;
-
       toast.success(`Stok berhasil ditambahkan! +${stockData.quantity} buah`);
       setIsStockModalOpen(false);
       setSelectedBook(null);
-      fetchBooks();
+      fetchBooks(); // Refresh data
+      
     } catch (error) {
       console.error('Error adding stock:', error);
       toast.error('Gagal menambah stok: ' + error.message);
@@ -463,11 +543,9 @@ function BooksPage() {
     const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (book.author && book.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (book.isbn && book.isbn.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !filterCategory || book.category === filterCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
-  const categories = [...new Set(books.map(book => book.category).filter(Boolean))].sort();
   const totalBooks = books.length;
   const totalStock = books.reduce((sum, book) => sum + book.stock_quantity, 0);
   const totalValue = books.reduce((sum, book) => sum + (book.selling_price * book.stock_quantity), 0);
@@ -648,7 +726,7 @@ function BooksPage() {
 
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: '2fr 1fr 1fr', 
+        gridTemplateColumns: '2fr 1fr', 
         gap: '15px', 
         marginBottom: '20px',
         alignItems: 'end'
@@ -668,25 +746,6 @@ function BooksPage() {
               fontSize: '14px'
             }}
           />
-        </div>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Kategori</label>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              border: '1px solid #ddd', 
-              borderRadius: '6px',
-              fontSize: '14px'
-            }}
-          >
-            <option value="">Semua Kategori</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Urutkan</label>
@@ -718,15 +777,15 @@ function BooksPage() {
         }}>
           <div style={{ fontSize: '48px', marginBottom: '15px' }}>📚</div>
           <h3 style={{ margin: '0 0 10px 0', color: '#495057' }}>
-            {searchTerm || filterCategory ? 'Tidak ditemukan' : 'Belum ada buku'}
+            {searchTerm ? 'Tidak ditemukan' : 'Belum ada buku'}
           </h3>
           <p style={{ margin: '0 0 20px 0', color: '#6c757d' }}>
-            {searchTerm || filterCategory ? 
-              'Coba ubah kata kunci pencarian atau filter kategori' : 
+            {searchTerm ? 
+              'Coba ubah kata kunci pencarian' : 
               'Mulai tambahkan buku pertama untuk koleksi toko Anda'
             }
           </p>
-          {!searchTerm && !filterCategory && (
+          {!searchTerm && (
             <button 
               onClick={() => setIsModalOpen(true)}
               style={{
@@ -801,18 +860,6 @@ function BooksPage() {
                   }}>
                     oleh {book.author}
                   </p>
-                )}
-                {book.category && (
-                  <span style={{
-                    background: '#e9ecef',
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    color: '#495057',
-                    fontWeight: '500'
-                  }}>
-                    {book.category}
-                  </span>
                 )}
               </div>
 
@@ -949,57 +996,6 @@ function BooksPage() {
         onSave={handleAddStock}
         book={selectedBook}
       />
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        .form-group input, .form-group select, .form-group textarea {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          box-sizing: border-box;
-          font-family: 'Axiforma', sans-serif;
-          font-size: 14px;
-        }
-        
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-          outline: none;
-          border-color: #0d6efd;
-          box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
-        }
-        
-        .btn-save {
-          background-color: #198754;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-        }
-        
-        .btn-save:hover {
-          background-color: #157347;
-        }
-        
-        .btn-cancel {
-          background-color: #6c757d;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-        }
-        
-        .btn-cancel:hover {
-          background-color: #5c636a;
-        }
-      `}</style>
     </div>
   );
 }

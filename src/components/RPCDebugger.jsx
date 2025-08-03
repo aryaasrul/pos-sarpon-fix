@@ -142,8 +142,8 @@ function RPCDebugger() {
         
         try {
           const { data: coffeePrices, error: coffeeError } = await supabase.rpc(
-            'calculate_menu_prices',
-            { p_menu_item_id: testMenuWithRecipe.menu_item_id }
+              'calculate_coffee_menu_prices',  // ← NEW NAME
+              { p_menu_item_id: testMenuWithRecipe.menu_item_id }
           );
 
           results.push({
@@ -226,7 +226,7 @@ function RPCDebugger() {
 
       // Function 2: calculate_menu_prices
       const coffeeFunction = `
-        CREATE OR REPLACE FUNCTION calculate_menu_prices(p_menu_item_id INT)
+        CREATE OR REPLACE FUNCTION calculate_coffee_menu_prices(p_menu_item_id INT)  // ← NEW NAME
         RETURNS TABLE(
             ingredient_id INT,
             ingredient_name TEXT,
@@ -275,7 +275,7 @@ function RPCDebugger() {
             RETURN;
         END;
         $$ LANGUAGE plpgsql;
-      `;
+        `;
 
       // Execute both functions
       const { error: error1 } = await supabase.rpc('exec', { query: nonCoffeeFunction });

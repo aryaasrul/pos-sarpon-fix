@@ -1,4 +1,3 @@
-// src/hooks/useMenuPrices.js
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useRealtimePrices } from './useRealtimePrices';
@@ -37,9 +36,9 @@ export const useMenuPrices = () => {
         if (recipeError) throw recipeError;
 
         if (recipes && recipes.length > 0) {
-          // MENU COFFEE - pakai RPC function
+          // MENU COFFEE - pakai RPC function (FIXED NAME!)
           const { data: prices, error: rpcError } = await supabase.rpc(
-            'calculate_menu_prices',
+            'calculate_coffee_menu_prices',  // ← CHANGED FROM calculate_menu_prices
             { p_menu_item_id: item.id }
           );
 
@@ -81,7 +80,7 @@ export const useMenuPrices = () => {
             });
           });
         } else {
-          // MENU NON-COFFEE
+          // MENU NON-COFFEE (function name unchanged)
           const { data: nonCoffeePrice, error: nonCoffeeError } = await supabase.rpc(
             'calculate_non_coffee_price',
             { p_menu_item_id: item.id }
@@ -125,23 +124,19 @@ export const useMenuPrices = () => {
         }
       }
 
-      console.log('✅ Menu prices fetched:', finalMenu.length, 'items');
       setDisplayMenu(finalMenu);
-      setLastUpdate(new Date());
-      
     } catch (err) {
-      console.error('❌ Menu fetch error:', err);
       throw new Error('Menu: ' + err.message);
     }
   }, []);
 
-  // === FETCH BOOKS ===
+  // === FETCH BOOKS DATA ===
   const fetchBooks = useCallback(async () => {
     try {
       const { data: booksData, error: booksError } = await supabase
         .from('books')
         .select('*')
-        .gt('stock_quantity', 0)
+        .gt('stock_quantity', 0) // Hanya yang masih ada stoknya
         .order('title');
 
       if (booksError) throw booksError;
@@ -150,12 +145,11 @@ export const useMenuPrices = () => {
         display_id: `book-${book.id}`,
         item_to_cart: {
           id: `book-${book.id}`,
-          name: `${book.title}${book.author ? ` - ${book.author}` : ''}`,
+          name: `${book.title}${book.author ? ` by ${book.author}` : ''}`,
           price: book.selling_price,
           hpp: book.purchase_price,
           type: 'BOOK',
-          book_id: book.id,
-          stock: book.stock_quantity
+          book_id: book.id
         }
       }));
 
@@ -166,29 +160,33 @@ export const useMenuPrices = () => {
   }, []);
 
   // === FETCH ALL DATA ===
-  const fetchAllData = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
     setError(null);
-
+    
     try {
-      await Promise.all([fetchMenuAndPrices(), fetchBooks()]);
+      await Promise.all([
+        fetchMenuAndPrices(),
+        fetchBooks()
+      ]);
+      
+      setLastUpdate(new Date());
     } catch (err) {
-      const errorMsg = 'Gagal memuat data: ' + err.message;
-      setError(errorMsg);
-      console.error('Data fetch error:', err);
+      console.error('🚨 Data fetch error:', err);
+      setError(err.message);
+      toast.error('Gagal memuat data: ' + err.message);
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   }, [fetchMenuAndPrices, fetchBooks]);
 
-  // === MANUAL REFRESH FUNCTION ===
+  // === MANUAL REFRESH ===
   const refreshPrices = useCallback(async () => {
-    console.log('🔄 Manual refresh triggered');
-    const refreshToast = toast.loading('Menyinkronkan harga terbaru...');
+    const refreshToast = toast.loading('🔄 Menyegarkan harga...');
     
     try {
-      await fetchAllData(false);
-      toast.success('✅ Harga berhasil disinkronkan!', { id: refreshToast });
+      await fetchAllData();
+      toast.success('✅ Harga berhasil disegarkan!', { id: refreshToast });
     } catch (err) {
       toast.error('❌ Gagal refresh: ' + err.message, { id: refreshToast });
     }

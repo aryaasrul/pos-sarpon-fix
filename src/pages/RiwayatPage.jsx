@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast'; // Impor library notifikasi
-import { supabase } from '../supabaseClient'; // Impor Supabase client
+import { supabase } from '../supabaseClient';
+import toast from 'react-hot-toast';
 import ExpenseFormModal from '../components/ExpenseFormModal';
 import '../Riwayat.css';
 
-// Komponen DateAccordion tidak perlu diubah
 function DateAccordion({ date, items, type, balance }) {
   const [isOpen, setIsOpen] = useState(true);
 
-  const dailyTotal = items.reduce((sum, item) => sum + (type === 'income' ? item.price * item.quantity : item.amount), 0);
+  const dailyTotal = items.reduce((sum, item) => sum + (type === 'income' ? item.total_amount : item.amount), 0);
   const dailyProfit = type === 'income' 
-    ? items.reduce((sum, item) => sum + ((item.price - (item.hpp || 0)) * item.quantity), 0)
+    ? items.reduce((sum, item) => sum + (item.profit || 0), 0)
     : 0;
 
   const renderSummary = () => {
@@ -49,7 +48,7 @@ function DateAccordion({ date, items, type, balance }) {
           acc[item.name] = { ...item, quantity: 0, total: 0 };
         }
         acc[item.name].quantity += item.quantity;
-        acc[item.name].total += item.price * item.quantity;
+        acc[item.name].total += item.total_amount;
         return acc;
       }, {});
       
@@ -84,7 +83,6 @@ function DateAccordion({ date, items, type, balance }) {
   );
 }
 
-
 function RiwayatPage() {
   const [activeTab, setActiveTab] = useState('pemasukan');
   const [orders, setOrders] = useState([]);
@@ -92,22 +90,56 @@ function RiwayatPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const totalIncome = orders.reduce((sum, order) => sum + (order.price * order.quantity), 0);
+  const totalIncome = orders.reduce((sum, order) => sum + order.total_amount, 0);
   const totalExpense = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const currentBalance = totalIncome - totalExpense;
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersRes, expensesRes] = await Promise.all([
-        supabase.from('orders').select('*').order('created_at', { ascending: false }),
+      const [transactionsRes, expensesRes] = await Promise.all([
+        supabase
+          .from('transactions')
+          .select(`
+            *,
+            transaction_items (
+              item_type,
+              item_name,
+              ingredient_name,
+              quantity,
+              unit_price,
+              total_price,
+              profit_per_item
+            )
+          `)
+          .order('created_at', { ascending: false }),
         supabase.from('expenses').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (ordersRes.error) throw ordersRes.error;
+      if (transactionsRes.error) throw transactionsRes.error;
       if (expensesRes.error) throw expensesRes.error;
 
-      setOrders(ordersRes.data);
+      const transformedTransactions = [];
+      transactionsRes.data.forEach(transaction => {
+        transaction.transaction_items.forEach(item => {
+          transformedTransactions.push({
+            id: `${transaction.id}-${item.item_name}`,
+            transaction_id: transaction.id,
+            transaction_code: transaction.transaction_code,
+            name: item.ingredient_name ? 
+              `${item.item_name} (${item.ingredient_name})` : 
+              item.item_name,
+            quantity: item.quantity,
+            price: item.unit_price,
+            total_amount: item.total_price,
+            profit: item.profit_per_item,
+            created_at: transaction.created_at,
+            payment_method: transaction.payment_method
+          });
+        });
+      });
+
+      setOrders(transformedTransactions);
       setExpenses(expensesRes.data);
 
     } catch (error) {
@@ -124,17 +156,10 @@ function RiwayatPage() {
 
   const handleSaveExpense = async (formData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Sesi tidak valid, silakan login ulang.");
-        return;
-      }
-
       const dataToSave = {
-          ...formData,
-          group_id: 'exp_' + Date.now(),
-          user_id: user.id
-      }
+        ...formData,
+        group_id: 'exp_' + Date.now()
+      };
   
       const { error } = await supabase.from('expenses').insert([dataToSave]);
   

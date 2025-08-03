@@ -1,16 +1,6 @@
-// src/components/Cart.jsx - FINAL VERSION (UUID Ready)
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
-
-// Utility function untuk generate UUID v4
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 function Cart({ cart, onOrderSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -27,39 +17,37 @@ function Cart({ cart, onOrderSuccess }) {
     const loadingToast = toast.loading('Memproses transaksi...');
     
     try {
-      // === 1. GET USER ===
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError) {
-        throw new Error("Sesi tidak valid: " + authError.message);
+      // === 1. GET USER (Optional - bisa skip jika tidak ada auth) ===
+      // Untuk saat ini kita skip auth dulu, tapi struktur siap untuk user management
+      let userId = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id;
+      } catch (authError) {
+        console.log('No auth user found, proceeding without user_id');
       }
 
-      if (!user) {
-        throw new Error("Silakan login untuk melakukan transaksi.");
-      }
-
-      // === 2. GENERATE TRANSACTION ID (UUID FORMAT) ===
-      const transactionId = generateUUID();
-      
-      console.log('🔥 Processing order with UUID transaction ID:', transactionId);
+      console.log('🔥 Processing order...');
       console.log('🛒 Cart items:', cart);
 
-      // === 3. VALIDASI STOK BUKU SEBELUM TRANSAKSI ===
+      // === 2. VALIDASI STOK BUKU SEBELUM TRANSAKSI ===
       const bookItems = cart.filter(item => item.type === 'BOOK');
       
       if (bookItems.length > 0) {
         console.log('📚 Validating book stock...');
         
         for (const bookItem of bookItems) {
-          // Pastikan book_id ada dan valid UUID
-          if (!bookItem.book_id) {
-            throw new Error(`Book ID missing for item: ${bookItem.name}`);
+          // Ambil ID buku dari string "book-{id}"
+          const bookId = parseInt(bookItem.id.replace('book-', ''));
+          
+          if (!bookId || isNaN(bookId)) {
+            throw new Error(`Book ID tidak valid untuk item: ${bookItem.name}`);
           }
 
           const { data: bookData, error: bookError } = await supabase
             .from('books')
             .select('stock_quantity, title, id')
-            .eq('id', bookItem.book_id)
+            .eq('id', bookId)
             .single();
 
           if (bookError) {
@@ -68,7 +56,7 @@ function Cart({ cart, onOrderSuccess }) {
           }
 
           if (!bookData) {
-            throw new Error(`Buku dengan ID ${bookItem.book_id} tidak ditemukan`);
+            throw new Error(`Buku dengan ID ${bookId} tidak ditemukan`);
           }
 
           if (bookData.stock_quantity < bookItem.quantity) {
@@ -78,124 +66,115 @@ function Cart({ cart, onOrderSuccess }) {
         console.log('✅ Book stock validation passed');
       }
 
-      // === 4. SIAPKAN DATA ORDER (UUID FORMAT) ===
-      const orderData = cart.map(item => {
-        const baseOrder = {
-          transaction_id: transactionId, // UUID format untuk semua transaksi
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          hpp: item.hpp || 0,
-          user_id: user.id, // UUID
-          product_type: item.type, // 'MENU' atau 'BOOK'
-          created_at: new Date().toISOString()
-        };
+      // === 3. HITUNG TOTAL PROFIT ===
+      const totalProfit = cart.reduce((sum, item) => {
+        const profit = (item.price - (item.hpp || 0)) * item.quantity;
+        return sum + profit;
+      }, 0);
 
-        // Tambah book_id untuk produk buku (UUID format)
-        if (item.type === 'BOOK' && item.book_id) {
-          baseOrder.book_id = item.book_id; // UUID dari database books
-        }
-
-        return baseOrder;
-      });
-
-      console.log('📝 Order data prepared:', orderData);
-
-      // === 5. SIMPAN TRANSAKSI KE DATABASE ===
-      console.log('💾 Saving transaction to database...');
+      // === 4. BUAT TRANSACTION RECORD ===
+      console.log('💾 Creating transaction record...');
       
-      const { data: insertedOrders, error: insertError } = await supabase
-        .from('orders')
-        .insert(orderData)
-        .select();
-      
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        
-        // Handle specific errors
-        if (insertError.message.includes('uuid') || insertError.code === '22P02') {
-          throw new Error('Format data tidak valid. Silakan refresh halaman dan coba lagi.');
-        }
-        
-        if (insertError.message.includes('foreign key')) {
-          throw new Error('Referensi data tidak valid. Silakan refresh halaman.');
-        }
-        
-        throw new Error(`Gagal menyimpan transaksi: ${insertError.message}`);
+      const { data: transactionData, error: transactionError } = await supabase
+        .from('transactions')
+        .insert([{
+          transaction_code: `TRX-${Date.now()}`, // Generate simple transaction code
+          total_amount: total,
+          total_profit: totalProfit,
+          payment_method: 'cash', // Default cash, bisa ditambah payment method selector nanti
+          notes: `${cart.length} items - Auto generated transaction`
+        }])
+        .select()
+        .single();
+
+      if (transactionError) {
+        console.error('Transaction insert error:', transactionError);
+        throw new Error(`Gagal membuat transaksi: ${transactionError.message}`);
       }
 
-      console.log('✅ Transaction saved successfully:', insertedOrders);
+      const transactionId = transactionData.id;
+      console.log('✅ Transaction created with ID:', transactionId);
 
-      // === 6. UPDATE STOK BUKU & CATAT PERGERAKAN ===
+      // === 5. BUAT TRANSACTION ITEMS ===
+      console.log('📝 Creating transaction items...');
+      
+      const transactionItems = cart.map(item => {
+        // Tentukan item_type dan item_id berdasarkan jenis item
+        let itemType, itemId, itemName, ingredientName = null;
+        
+        if (item.type === 'BOOK') {
+          itemType = 'book';
+          itemId = parseInt(item.id.replace('book-', ''));
+          itemName = item.name;
+        } else {
+          // MENU item
+          itemType = 'menu';
+          // Extract menu ID dari item.id yang format "menu-{menu_id}-{ingredient_id}"
+          const idParts = item.id.split('-');
+          if (idParts.length >= 2) {
+            itemId = parseInt(idParts[1]); // menu_id
+            // Cek jika ada ingredient info
+            if (item.name.includes('(') && item.name.includes(')')) {
+              const match = item.name.match(/\(([^)]+)\)/);
+              ingredientName = match ? match[1] : null;
+            }
+          } else {
+            itemId = parseInt(item.id.replace('menu-', ''));
+          }
+          itemName = item.name;
+        }
+
+        return {
+          transaction_id: transactionId,
+          item_type: itemType,
+          item_id: itemId,
+          item_name: itemName,
+          ingredient_name: ingredientName,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+          hpp: item.hpp || 0,
+          profit_per_item: (item.price - (item.hpp || 0)) * item.quantity
+        };
+      });
+
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('transaction_items')
+        .insert(transactionItems)
+        .select();
+
+      if (itemsError) {
+        console.error('Transaction items insert error:', itemsError);
+        // Rollback transaction jika items gagal
+        await supabase.from('transactions').delete().eq('id', transactionId);
+        throw new Error(`Gagal menyimpan detail transaksi: ${itemsError.message}`);
+      }
+
+      console.log('✅ Transaction items created:', itemsData);
+
+      // === 6. UPDATE STOK BUKU ===
       if (bookItems.length > 0) {
-        console.log('📦 Updating book stock and recording movements...');
+        console.log('📦 Updating book stock...');
         
         for (const bookItem of bookItems) {
+          const bookId = parseInt(bookItem.id.replace('book-', ''));
+          
           try {
-            // Update stok buku dengan raw SQL yang benar
-            const { data: updateResult, error: stockUpdateError } = await supabase
-              .rpc('decrement_book_stock', {
-                book_id: bookItem.book_id,
-                quantity_to_subtract: bookItem.quantity
-              });
+            // Update stok langsung (schema baru tidak pakai stock_movements)
+            const { error: stockUpdateError } = await supabase
+              .from('books')
+              .update({ 
+                stock_quantity: supabase.raw(`stock_quantity - ${bookItem.quantity}`),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', bookId);
 
-            // Jika RPC function tidak ada, gunakan alternative method
-            if (stockUpdateError && stockUpdateError.message.includes('function')) {
-              console.log('RPC function not found, using alternative update method...');
-              
-              // Alternative: Get current stock first, then update
-              const { data: currentBook, error: fetchError } = await supabase
-                .from('books')
-                .select('stock_quantity, title')
-                .eq('id', bookItem.book_id)
-                .single();
-
-              if (fetchError) throw new Error(`Gagal mengambil data buku: ${fetchError.message}`);
-
-              const newStock = currentBook.stock_quantity - bookItem.quantity;
-              
-              if (newStock < 0) {
-                throw new Error(`Stok buku "${currentBook.title}" tidak mencukupi untuk transaksi ini`);
-              }
-
-              const { data: updateData, error: updateError } = await supabase
-                .from('books')
-                .update({ 
-                  stock_quantity: newStock,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('id', bookItem.book_id)
-                .select('stock_quantity, title');
-
-              if (updateError) throw new Error(`Gagal update stok: ${updateError.message}`);
-              
-              console.log(`✅ Stock updated for ${bookItem.name}:`, updateData);
-            } else if (stockUpdateError) {
-              throw new Error(`Gagal update stok buku: ${stockUpdateError.message}`);
-            } else {
-              console.log(`✅ Stock updated via RPC for ${bookItem.name}:`, updateResult);
-            }
-
-            // Catat pergerakan stok
-            const { error: movementError } = await supabase
-              .from('book_stock_movements')
-              .insert([{
-                book_id: bookItem.book_id, // UUID
-                movement_type: 'OUT',
-                quantity: bookItem.quantity,
-                reference_type: 'SALE',
-                reference_id: transactionId, // UUID
-                notes: `Penjualan - ${bookItem.name}`,
-                user_id: user.id, // UUID
-                created_at: new Date().toISOString()
-              }]);
-
-            if (movementError) {
-              console.error('Movement record error:', movementError);
+            if (stockUpdateError) {
+              console.error('Stock update error:', stockUpdateError);
               // Log error tapi jangan gagalkan transaksi
-              console.warn('Failed to record stock movement, but sale completed successfully');
+              console.warn('Failed to update book stock, but transaction completed');
             } else {
-              console.log(`✅ Stock movement recorded for ${bookItem.name}`);
+              console.log(`✅ Stock updated for book ID ${bookId}: -${bookItem.quantity}`);
             }
 
           } catch (stockError) {
@@ -225,11 +204,11 @@ function Cart({ cart, onOrderSuccess }) {
         successMessage += `\n📚 ${bookCount} buku`;
       }
       
-      successMessage += `\n🆔 ID: ${transactionId.slice(0, 8)}...`;
+      successMessage += `\n🆔 ID: ${transactionData.transaction_code}`;
       
       toast.success(successMessage, { duration: 5000 });
       
-      console.log('🎉 Transaction completed successfully with UUID:', transactionId);
+      console.log('🎉 Transaction completed successfully:', transactionData);
       
       // Clear cart dan refresh data
       onOrderSuccess();
@@ -239,20 +218,18 @@ function Cart({ cart, onOrderSuccess }) {
       
       toast.dismiss(loadingToast);
       
-      // Enhanced error handling dengan konteks yang jelas
+      // Enhanced error handling
       let errorMessage = 'Gagal memproses pesanan';
       
       if (error.message.includes('Stok buku')) {
         errorMessage = `📚 ${error.message}`;
-      } else if (error.message.includes('Book ID missing')) {
+      } else if (error.message.includes('Book ID')) {
         errorMessage = '📚 Data buku tidak valid. Silakan refresh halaman dan coba lagi.';
-      } else if (error.message.includes('uuid') || error.message.includes('Format data')) {
-        errorMessage = '🔧 ' + error.message;
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
         errorMessage = '🌐 Koneksi bermasalah. Periksa internet Anda dan coba lagi.';
       } else if (error.message.includes('permission') || error.message.includes('unauthorized')) {
-        errorMessage = '🔒 Tidak memiliki izin untuk melakukan transaksi. Silakan login ulang.';
-      } else if (error.message.includes('foreign key') || error.message.includes('Referensi data')) {
+        errorMessage = '🔒 Tidak memiliki izin untuk melakukan transaksi. Silakan refresh halaman.';
+      } else if (error.message.includes('foreign key')) {
         errorMessage = '🔗 Referensi data tidak valid. Silakan refresh halaman.';
       } else if (error.message) {
         errorMessage = error.message;

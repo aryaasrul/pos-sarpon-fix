@@ -89,8 +89,8 @@ function DatabaseDebugPanel() {
           if (recipes && recipes.length > 0) {
             // Coffee menu
             const { data: coffeePrice, error: coffeeError } = await supabase.rpc(
-              'calculate_menu_prices',
-              { p_menu_item_id: item.id }
+                  'calculate_coffee_menu_prices',  // ← NEW NAME
+                  { p_menu_item_id: item.id }
             );
 
             if (!coffeeError && coffeePrice) {
