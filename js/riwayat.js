@@ -40,16 +40,89 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (header) toggleItem(header.closest('.order-item, .expense-item'));
   });
 
+  // Tutup Buku
+  const tutupModal = document.getElementById('tutup-buku-modal');
+  document.getElementById('btn-tutup-buku')?.addEventListener('click', openTutupBuku);
+  document.getElementById('btn-close-tutup-buku')?.addEventListener('click', () => closeModal(tutupModal));
+  document.getElementById('btn-tutup-buku-batal')?.addEventListener('click', () => closeModal(tutupModal));
+  document.getElementById('btn-tutup-buku-simpan')?.addEventListener('click', saveTutupBuku);
+  tutupModal?.addEventListener('click', e => { if (e.target === tutupModal) closeModal(tutupModal); });
+
+  const saldoInput = document.getElementById('input-saldo-awal');
+  saldoInput?.addEventListener('input', () => formatRupiah(saldoInput));
+
   await init();
 });
 
 async function init() {
   try {
-    currentBalance = await api.getBalance();
+    const result = await api.getBalance();
+    currentBalance = result.balance;
+    renderSaldoCard(result);
   } catch (e) {
     console.error('Gagal hitung saldo:', e);
+    document.getElementById('saldo-amount').textContent = 'Gagal memuat';
   }
   await loadActiveTab();
+}
+
+// ─── SALDO CARD ───────────────────────────────────────────────
+
+function renderSaldoCard({ balance, openingBalance, periodStartDate }) {
+  const amountEl = document.getElementById('saldo-amount');
+  const metaEl   = document.getElementById('saldo-meta');
+  if (amountEl) amountEl.textContent = formatCurrency(balance);
+
+  if (metaEl) {
+    const start = new Date(periodStartDate + 'T00:00:00');
+    const startStr = `${start.getDate()} ${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()}`;
+    const isDefault = periodStartDate === '2000-01-01';
+    metaEl.textContent = isDefault
+      ? 'Semua waktu'
+      : `Periode mulai ${startStr} · Saldo awal ${formatCurrency(openingBalance)}`;
+  }
+}
+
+// ─── TUTUP BUKU ───────────────────────────────────────────────
+
+function openTutupBuku() {
+  const modal        = document.getElementById('tutup-buku-modal');
+  const saldoInput   = document.getElementById('input-saldo-awal');
+  const tanggalInput = document.getElementById('input-tanggal-mulai');
+
+  saldoInput.value   = '';
+  tanggalInput.value = formatDateForInput(new Date());
+  openModal(modal);
+}
+
+async function saveTutupBuku() {
+  const saldoInput   = document.getElementById('input-saldo-awal');
+  const tanggalInput = document.getElementById('input-tanggal-mulai');
+  const btn          = document.getElementById('btn-tutup-buku-simpan');
+
+  const rawSaldo  = parseRupiah(saldoInput.value);
+  const tanggal   = tanggalInput.value;
+
+  if (!tanggal) { showToast('Pilih tanggal mulai periode.'); return; }
+
+  btn.disabled    = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    await Promise.all([
+      api.upsertSetting('opening_balance',  rawSaldo),
+      api.upsertSetting('period_start_date', tanggal),
+    ]);
+    closeModal(document.getElementById('tutup-buku-modal'));
+    showToast('Buku berhasil ditutup! Periode baru dimulai.');
+    await init();
+  } catch (e) {
+    console.error('Gagal tutup buku:', e);
+    showToast('Gagal menyimpan. Coba lagi.');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Simpan';
+  }
 }
 
 function setActiveTab(tab) {

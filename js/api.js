@@ -221,16 +221,55 @@ const api = {
     if (error) throw error;
   },
 
+  // ─── SETTINGS ─────────────────────────────────────────────────
+
+  async getSetting(key) {
+    const { data, error } = await sb
+      .from('app_settings')
+      .select('value')
+      .eq('key', key)
+      .single();
+    if (error) return null;
+    return data?.value ?? null;
+  },
+
+  async upsertSetting(key, value) {
+    const { error } = await sb
+      .from('app_settings')
+      .upsert({ key, value: String(value), updated_at: new Date().toISOString() });
+    if (error) throw error;
+  },
+
+  async getPeriodSettings() {
+    const { data } = await sb
+      .from('app_settings')
+      .select('key, value')
+      .in('key', ['opening_balance', 'period_start_date']);
+    const result = { opening_balance: 0, period_start_date: '2000-01-01' };
+    (data || []).forEach(row => { result[row.key] = row.value; });
+    return {
+      openingBalance: Number(result.opening_balance) || 0,
+      periodStartDate: result.period_start_date || '2000-01-01',
+    };
+  },
+
   // ─── SALDO ────────────────────────────────────────────────────
 
   async getBalance() {
+    const { openingBalance, periodStartDate } = await api.getPeriodSettings();
+    const startISO = new Date(periodStartDate + 'T00:00:00').toISOString();
+
     const [{ data: txItems }, { data: expenses }] = await Promise.all([
-      sb.from('transaction_items').select('total_price'),
-      sb.from('expenses').select('amount'),
+      sb.from('transaction_items')
+        .select('total_price, transactions!inner(created_at)')
+        .gte('transactions.created_at', startISO),
+      sb.from('expenses')
+        .select('amount')
+        .gte('created_at', startISO),
     ]);
     const income  = (txItems  || []).reduce((s, i) => s + Number(i.total_price), 0);
     const expense = (expenses || []).reduce((s, e) => s + Number(e.amount), 0);
-    return income - expense;
+    return { balance: openingBalance + income - expense, openingBalance, periodStartDate };
   },
 
   // ─── KALKULASI HARGA (frontend) ───────────────────────────────
