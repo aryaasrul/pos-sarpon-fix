@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Kasir – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Kasir</h1>
+    <div class="header-actions">
+      <span id="user-name" class="user-name"></span>
+      <button id="logout-btn" class="logout-btn">Logout</button>
+      <button class="btn-input-manual">
+        <img src="icons/icon-plus-input-manual.svg" alt="">
+        Input Manual
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="Cari Produk">
+  </div>
+
+  <div class="categories"></div>
+
+  <div class="product-list"></div>
+
+  <div class="cart-summary">
+    <div class="cart-info">
+      <p>Total</p>
+      <p id="total-amount">Rp 0</p>
+    </div>
+    <button id="btn-process" class="btn-process">Proses Pesanan</button>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item active">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Modal – pilih bean -->
+  <div id="bean-picker-modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:2px">Pilih Bean</div>
+          <h2 id="bean-picker-title" style="font-size:16px"></h2>
+        </div>
+        <span class="close" id="btn-close-bean" aria-label="Tutup">&times;</span>
+      </div>
+      <div class="modal-body" id="bean-picker-body"></div>
+    </div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/kasir.js"></script>
+</body>
+</html>

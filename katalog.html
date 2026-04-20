@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Katalog – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="katalog.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Katalog</h1>
+    <button id="btn-tambah" class="btn-tambah-produk">
+      <img src="icons/icon-plus-input-manual.svg" alt="">
+      Tambah Produk
+    </button>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="tab-switcher">
+    <button class="tab-btn active" data-tab="produk">Produk</button>
+    <button class="tab-btn" data-tab="beans">Beans</button>
+    <button class="tab-btn" data-tab="stok">Stok Buku</button>
+  </div>
+
+  <!-- ─── SECTION PRODUK ─────────────────────────────────────── -->
+  <div id="section-produk">
+    <div class="search-container">
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Produk">
+      </div>
+    </div>
+
+    <div class="categories"></div>
+    <div class="product-list"></div>
+  </div>
+
+  <!-- ─── SECTION BEANS ──────────────────────────────────────── -->
+  <div id="section-beans" style="display:none">
+    <div class="beans-list" id="beans-list"></div>
+  </div>
+
+  <!-- ─── SECTION STOK BUKU ──────────────────────────────────── -->
+  <div id="section-stok" style="display:none">
+    <div id="stok-list"></div>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item active">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Modal – opsi produk/bean -->
+  <div id="product-options-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-options-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-options-title">Opsi</h2>
+        <span class="close" aria-label="Tutup">&times;</span>
+      </div>
+      <div class="modal-body">
+        <button id="btn-edit-product"   class="option-btn">Edit</button>
+        <button id="btn-delete-product" class="option-btn danger">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal – ubah stok buku -->
+  <div id="stok-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stok-modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="stok-modal-title">Ubah Stok</h2>
+        <span class="close" aria-label="Tutup">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p id="stok-modal-book" class="stok-modal-book-name"></p>
+        <p id="stok-modal-current" class="stok-modal-current"></p>
+        <div class="stok-modal-input-row">
+          <button id="btn-stok-dec" class="stok-quick-btn">−</button>
+          <input type="number" id="stok-input" min="1" placeholder="1" class="stok-number-input">
+          <button id="btn-stok-inc" class="stok-quick-btn">+</button>
+        </div>
+        <div class="modal-buttons" style="margin-top:16px">
+          <button id="btn-stok-cancel" class="option-btn">Batal</button>
+          <button id="btn-stok-save"   class="option-btn stok-save-btn">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal – konfirmasi hapus -->
+  <div id="delete-confirmation-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-delete-title">Konfirmasi Hapus</h2>
+        <span class="close" aria-label="Tutup">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Apakah kamu yakin ingin menghapus ini?</p>
+        <div class="modal-buttons" style="margin-top:16px">
+          <button id="btn-cancel-delete"  class="option-btn">Batal</button>
+          <button id="btn-confirm-delete" class="option-btn danger">Hapus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/katalog.js"></script>
+</body>
+</html>

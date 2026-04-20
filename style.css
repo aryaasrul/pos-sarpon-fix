@@ -1,0 +1,97 @@
+/* ─── Kasir Page – style spesifik ───────────────────────────
+   Shared styles (navbar, header, search, categories, product-card)
+   sudah ada di css/base.css dan css/components.css
+   ─────────────────────────────────────────────────────────── */
+
+/* Tambahkan margin bawah untuk product-list di kasir
+   agar tidak tertutup cart-summary */
+.product-list {
+  margin-bottom: 100px;
+}
+
+/* ─── Cart Summary ──────────────────────────────────────── */
+.cart-summary {
+  position: fixed;
+  bottom: var(--navbar-height);
+  left: 0;
+  right: 0;
+  background-color: var(--color-white);
+  padding: 14px var(--page-padding);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  z-index: 90;
+}
+
+.cart-info p:first-child {
+  font-size: 13px;
+  color: var(--color-gray-600);
+  margin-bottom: 2px;
+}
+
+.cart-info p:last-child {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.btn-process {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-size: 15px;
+  min-height: 48px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-process:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Bean Picker (bottom sheet list) ───────────────────── */
+.bean-picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 0;
+  border: none;
+  border-bottom: 1px solid var(--color-gray-100);
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  gap: 12px;
+  transition: opacity 0.1s;
+}
+
+.bean-picker-item:last-child  { border-bottom: none; }
+.bean-picker-item:active      { opacity: 0.5; }
+
+.bean-picker-name  { font-weight: 500; color: var(--color-black); text-align: left; }
+.bean-picker-price { font-weight: 700; color: var(--color-black); white-space: nowrap; flex-shrink: 0; }
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (min-width: 520px) {
+  .cart-summary {
+    max-width: 520px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px;
+    bottom: calc(var(--navbar-height) + 8px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@media (min-width: 900px) {
+  .cart-summary {
+    max-width: 860px;
+  }
+}

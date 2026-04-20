@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tambah Bean – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="form-produk.css">
+</head>
+<body>
+
+  <div class="header">
+    <div class="back-button">
+      <a href="katalog.html" aria-label="Kembali ke katalog">
+        <img src="icons/Arrow-Left-2.svg" alt="">
+      </a>
+      <h1 id="page-title">Tambah Bean</h1>
+    </div>
+  </div>
+
+  <div class="content">
+    <h2>Informasi Bean</h2>
+
+    <div class="form-container">
+
+      <div class="form-group">
+        <label for="bean-name">Nama Bean</label>
+        <input type="text" id="bean-name" placeholder="Nama Bean" maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label for="bean-category">Tipe Bean</label>
+        <select id="bean-category" class="form-select">
+          <option value="espresso_bean">Espresso Bean</option>
+          <option value="filter_bean">Filter Bean</option>
+          <option value="other">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="bean-price">Harga Beli (per pack)</label>
+        <input type="text" id="bean-price" placeholder="Rp 0" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label for="bean-pack-size">Ukuran Pack (gram)</label>
+        <input type="number" id="bean-pack-size" placeholder="200" min="1" value="200">
+      </div>
+
+      <div class="form-group">
+        <label for="bean-stock">Stok Saat Ini (gram)</label>
+        <input type="number" id="bean-stock" placeholder="0" min="0" value="0">
+      </div>
+
+      <div class="form-group form-group-inline">
+        <label for="bean-active">Aktif</label>
+        <input type="checkbox" id="bean-active" checked>
+      </div>
+
+      <div class="button-group">
+        <button id="btn-simpan" class="btn-simpan">Simpan</button>
+        <button id="btn-hapus" class="btn-hapus" style="display:none">
+          <img src="icons/Delete.svg" alt="Hapus">
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal – konfirmasi hapus -->
+  <div id="delete-confirmation-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-delete-title">Konfirmasi Hapus</h2>
+        <span class="close" aria-label="Tutup">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Apakah kamu yakin ingin menghapus bean ini?</p>
+        <div class="modal-buttons" style="margin-top:16px">
+          <button id="btn-cancel-delete" class="option-btn">Batal</button>
+          <button id="btn-confirm-delete" class="option-btn danger">Hapus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item active">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/tambah-bean.js"></script>
+</body>
+</html>

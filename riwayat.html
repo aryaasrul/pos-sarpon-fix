@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Laporan – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="riwayat.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Laporan Penjualan</h1>
+  </div>
+
+  <div class="filter-container">
+    <button class="filter-btn">
+      <img src="icons/Filter-2.svg" alt="">
+      <span>Filter Tanggal/Waktu</span>
+    </button>
+    <button class="refresh-btn" aria-label="Refresh">
+      <img src="icons/Download.svg" alt="">
+    </button>
+  </div>
+
+  <div class="tab-container">
+    <button class="tab-btn active" id="tab-pemasukan">Pemasukan</button>
+    <button class="tab-btn"        id="tab-pengeluaran">Pengeluaran</button>
+  </div>
+
+  <div class="tab-content" id="pemasukan-content">
+    <div class="order-list"></div>
+  </div>
+
+  <div class="tab-content" id="pengeluaran-content" style="display:none">
+    <div class="expense-list"></div>
+    <button id="btn-add-expense" class="btn-add-expense" aria-label="Tambah Pengeluaran">
+      <img src="icons/Plus-square.svg" alt="">
+    </button>
+  </div>
+
+  <div class="filter-period">
+    <button class="period-btn" aria-label="Pilih periode">
+      <img src="icons/Calendar.svg" alt="">
+      <span>Seminggu Terakhir</span>
+      <img src="icons/Arrow-Down-2.svg" alt="">
+    </button>
+  </div>
+
+  <div class="filter-dropdown" role="listbox" aria-label="Pilih periode">
+    <div class="filter-option" role="option">Hari Ini</div>
+    <div class="filter-option" role="option">Kemarin</div>
+    <div class="filter-option" role="option">Seminggu Terakhir</div>
+    <div class="filter-option" role="option">Bulan Ini</div>
+    <div class="filter-option" role="option">Bulan Lalu</div>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item active">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/riwayat.js"></script>
+</body>
+</html>
