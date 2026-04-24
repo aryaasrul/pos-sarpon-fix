@@ -272,6 +272,18 @@ const api = {
     return { balance: openingBalance + income - expense, openingBalance, periodStartDate };
   },
 
+  // ─── DASHBOARD ────────────────────────────────────────────────
+
+  async getDashboardData(startDate, endDate) {
+    const { data, error } = await sb
+      .from('transaction_items')
+      .select('item_name, item_type, quantity, total_price, profit_per_item, transactions!inner(created_at)')
+      .gte('transactions.created_at', startDate.toISOString())
+      .lte('transactions.created_at', endDate.toISOString());
+    if (error) throw error;
+    return data || [];
+  },
+
   // ─── KALKULASI HARGA (frontend) ───────────────────────────────
 
   calcMenuPrice(menuItem, ingredient = null, quantityGrams = 0) {

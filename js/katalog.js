@@ -1,10 +1,12 @@
-let allProducts = [];
-let products    = [];
-let allBeans    = [];
-let stokBooks   = [];
-let currentItem = null;
-let currentTab  = 'produk';
-let stokTarget  = null; // { book, mode: 'tambah'|'kurangi' }
+let allProducts  = [];
+let products     = [];
+let allBeans     = [];
+let stokBooks    = [];
+let currentItem  = null;
+let currentTab   = 'produk';
+let stokTarget   = null; // { book, mode: 'tambah'|'kurangi' }
+let beansSearch  = '';
+let stokSearch   = '';
 
 document.addEventListener('DOMContentLoaded', async function () {
   setupNavbar(1);
@@ -22,6 +24,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.querySelector('.search-bar input')
     ?.addEventListener('input', handleSearch);
+
+  document.getElementById('search-beans')
+    ?.addEventListener('input', e => {
+      beansSearch = e.target.value.toLowerCase().trim();
+      renderBeans(allBeans.filter(b => !beansSearch || b.name.toLowerCase().includes(beansSearch)));
+    });
+
+  document.getElementById('search-stok')
+    ?.addEventListener('input', e => {
+      stokSearch = e.target.value.toLowerCase().trim();
+      renderStokBuku(stokBooks.filter(b => !stokSearch || b.title.toLowerCase().includes(stokSearch)));
+    });
 
   // ─── Modal opsi produk/bean ────────────────────────────────
   const optionsModal = document.getElementById('product-options-modal');
@@ -81,6 +95,14 @@ function switchTab(tab) {
   document.getElementById('section-produk').style.display = tab === 'produk' ? '' : 'none';
   document.getElementById('section-beans').style.display  = tab === 'beans'  ? '' : 'none';
   document.getElementById('section-stok').style.display   = tab === 'stok'   ? '' : 'none';
+
+  if (tab === 'beans') {
+    const el = document.getElementById('search-beans');
+    if (el) { el.value = ''; beansSearch = ''; }
+  } else if (tab === 'stok') {
+    const el = document.getElementById('search-stok');
+    if (el) { el.value = ''; stokSearch = ''; }
+  }
 
   const btn = document.getElementById('btn-tambah');
   if (tab === 'beans') {
