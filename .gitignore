@@ -16,3 +16,7 @@ Thumbs.db
 # Dependencies
 node_modules/
 **/node_modules/
+
+# Capacitor native build files (tidak relevan untuk web deployment)
+package.json
+package-lock.json
