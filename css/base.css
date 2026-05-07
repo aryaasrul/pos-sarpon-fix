@@ -30,7 +30,7 @@
   --shadow-sm: 0 2px 5px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
 
-  --navbar-height: 64px;
+  --navbar-height: 72px;
   --page-padding:  20px;
 }
 
@@ -50,7 +50,7 @@ body {
   font-family: 'Axiforma', system-ui, sans-serif;
   background-color: var(--color-bg);
   color: var(--color-black);
-  padding-bottom: calc(var(--navbar-height) + 16px);
+  padding-bottom: calc(var(--navbar-height) + 32px);
   min-height: 100dvh;
 }
 
