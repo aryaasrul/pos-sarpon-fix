@@ -1,0 +1,105 @@
+/* ═══════════════════════════════════════════════════════════
+   BASE – font, reset, variabel, layout dasar
+   ═══════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Axiforma';
+  src: url('../font/Axiforma-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ─── CSS Variables ──────────────────────────────────────── */
+:root {
+  --color-bg:        #f5f5f5;
+  --color-white:     #ffffff;
+  --color-black:     #000000;
+  --color-gray-100:  #f0f0f0;
+  --color-gray-200:  #e8e8e8;
+  --color-gray-300:  #dddddd;
+  --color-gray-600:  #666666;
+  --color-gray-900:  #333333;
+  --color-danger:    #d32f2f;
+  --color-danger-bg: #ffebee;
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  20px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 2px 5px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+
+  --navbar-height: 64px;
+  --page-padding:  20px;
+}
+
+/* ─── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Axiforma', system-ui, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-black);
+  padding-bottom: calc(var(--navbar-height) + 16px);
+  min-height: 100dvh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+input, textarea {
+  font-family: inherit;
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-gray-600);
+  font-size: 15px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-gray-600);
+  font-size: 15px;
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-gray-600);
+}
+
+.error-state button {
+  margin-top: 12px;
+  padding: 10px 24px;
+  background-color: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Input Manual – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="input-manual.css">
+</head>
+<body>
+
+  <div class="header">
+    <div class="back-button">
+      <a href="index.html" aria-label="Kembali ke kasir">
+        <img src="icons/Arrow-Left-2.svg" alt="">
+      </a>
+      <h1>Input Manual</h1>
+    </div>
+    <button id="btn-selesai" class="btn-selesai">Selesai</button>
+  </div>
+
+  <div class="content">
+    <h2>Informasi Produk</h2>
+
+    <div class="form-container">
+      <div class="form-group">
+        <label for="nama-produk">Nama Produk</label>
+        <input type="text" id="nama-produk" placeholder="Nama Produk" maxlength="50">
+        <div class="char-counter"><span id="nama-produk-count">0</span>/50</div>
+      </div>
+
+      <div class="form-group">
+        <label for="harga-jual">Harga Jual</label>
+        <input type="text" id="harga-jual" placeholder="Rp 0" inputmode="numeric">
+        <div class="char-counter"><span id="harga-jual-count">0</span>/50</div>
+      </div>
+
+      <div class="form-group">
+        <label for="harga-hpp">Harga HPP</label>
+        <input type="text" id="harga-hpp" placeholder="Rp 0" inputmode="numeric">
+        <div class="char-counter"><span id="harga-hpp-count">0</span>/50</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item active">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/input-manual.js"></script>
+</body>
+</html>

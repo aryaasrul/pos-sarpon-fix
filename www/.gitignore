@@ -1,0 +1,12 @@
+# Claude Code local config
+.claude/
+.mcp.json
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tambah Pengeluaran – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="tambah-pengeluaran.css">
+</head>
+<body>
+
+  <div class="header">
+    <div class="back-button">
+      <a href="riwayat.html" aria-label="Kembali ke laporan">
+        <img src="icons/Arrow-Left-2.svg" alt="">
+      </a>
+      <h1>Tambah Pengeluaran</h1>
+    </div>
+  </div>
+
+  <div class="content">
+    <h2>Detail Pengeluaran</h2>
+
+    <div class="form-container">
+
+      <div class="form-group">
+        <label for="tanggal">Pilih Tanggal</label>
+        <div class="date-input">
+          <img src="icons/Calendar.svg" alt="">
+          <input type="date" id="tanggal" name="tanggal">
+        </div>
+      </div>
+
+      <div class="expense-summary">
+        <div class="summary-row">
+          <span class="summary-label">Total Pengeluaran</span>
+          <span class="summary-value" id="total-pengeluaran">Rp 0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Sisa Saldo</span>
+          <span class="summary-value" id="sisa-saldo">Rp 0</span>
+        </div>
+      </div>
+
+      <div class="expense-items" id="expense-items">
+        <div class="expense-item">
+          <div class="item-row">
+            <div class="item-name">
+              <span>1x</span>
+              <input type="text" class="item-input" placeholder="Nama Item">
+            </div>
+            <div class="item-price">
+              <input type="text" class="price-input" placeholder="Rp 0" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="add-item-container">
+        <button id="btn-add-item" class="btn-add-item" type="button">
+          <img src="icons/Plus-square.svg" alt="">
+          <span>Tambah Item</span>
+        </button>
+      </div>
+
+      <div class="button-group">
+        <button id="btn-simpan" class="btn-simpan">Simpan</button>
+      </div>
+
+    </div>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item active">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+  </nav>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/tambah-pengeluaran.js"></script>
+</body>
+</html>

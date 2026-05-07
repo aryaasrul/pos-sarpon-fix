@@ -1,0 +1,437 @@
+/* ─── Form Produk – style spesifik ──────────────────────────
+   Reset, font, header, navbar sudah ada di css/base.css dan
+   css/components.css yang dimuat sebelum file ini.
+   ─────────────────────────────────────────────────────────── */
+
+.content {
+    padding: 0 25px;
+}
+
+.content h2 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.form-container {
+    background-color: #e8e8e8;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+/* Photo Section */
+.form-section {
+    margin-bottom: 20px;
+}
+
+.photo-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #333;
+}
+
+.photo-limit {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.photo-upload-container {
+    display: flex;
+    gap: 15px;
+}
+
+.photo-preview {
+    width: 100px;
+    height: 100px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.photo-preview.empty {
+    border: 1px dashed #ccc;
+}
+
+.camera-icon {
+    width: 30px;
+    height: 30px;
+    opacity: 0.5;
+}
+
+.photo-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.add-photo {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.add-photo img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.5;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.char-counter {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
+/* Kategori Section */
+.kategori-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.btn-atur-kategori {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-atur-kategori img {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+
+.selected-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-tag {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.remove-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+/* Button Group */
+.button-group {
+    display: flex;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.btn-simpan {
+    flex: 1;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-hapus {
+    width: 46px;
+    height: 46px;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    margin-left: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.btn-hapus img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 50% auto 0;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+    from {transform: translateY(100%);}
+    to {transform: translateY(0);}
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+    font-size: 18px;
+    color: #000;
+    margin: 0;
+}
+
+.close {
+    font-size: 24px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.kategori-list {
+    margin-bottom: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.kategori-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.kategori-checkbox {
+    margin-right: 10px;
+}
+
+.add-kategori-input {
+    display: flex;
+    margin-top: 5px;
+}
+
+.add-kategori-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px 0 0 8px;
+}
+
+.add-kategori-input button {
+    padding: 10px 15px;
+    background-color: #000;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    color: #fff;
+    cursor: pointer;
+}
+
+.btn-terapkan-kategori {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.option-btn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.option-btn.danger {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.modal-buttons .option-btn {
+    width: 48%;
+    margin-bottom: 0;
+}
+
+/* ─── Select Input ────────────────────────────────────────── */
+.form-select {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+
+/* ─── Recipe Row ──────────────────────────────────────────── */
+.recipe-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recipe-row select {
+    flex: 1;
+    padding: 10px 12px;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.recipe-row .recipe-qty-input {
+    width: 80px;
+    padding: 10px 12px;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.recipe-row .btn-remove-recipe {
+    width: 36px;
+    height: 36px;
+    background-color: #ffebee;
+    color: #d32f2f;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.btn-add-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #666;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+.btn-add-item img {
+    width: 18px;
+    height: 18px;
+}
+
+.hint {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+/* ─── Inline form group (checkbox) ───────────────────────── */
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-group-inline label {
+    margin-bottom: 0 !important;
+}
+
+.form-group-inline input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #000;
+}
+

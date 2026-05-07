@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dashboard – Toko Terang</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Dashboard</h1>
+  </div>
+
+  <!-- Filter Periode -->
+  <div class="dash-filter">
+    <button class="dash-filter-btn active" data-range="7">7 Hari</button>
+    <button class="dash-filter-btn" data-range="30">30 Hari</button>
+    <button class="dash-filter-btn" data-range="month">Bulan Ini</button>
+  </div>
+
+  <div id="dash-content">
+    <p class="loading-state">Memuat data...</p>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navigasi utama">
+    <div class="nav-item">
+      <img src="icons/orders-icon.svg" alt="Kasir">
+    </div>
+    <div class="nav-item">
+      <img src="icons/database-icon.svg" alt="Katalog">
+    </div>
+    <div class="nav-item">
+      <img src="icons/laporan-icon.svg" alt="Laporan">
+    </div>
+    <div class="nav-item active">
+      <img src="icons/dashboard-icon.svg" alt="Dashboard">
+    </div>
+  </nav>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Shared JS -->
+  <script src="js/error-handler.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/nav.js"></script>
+
+  <!-- Page JS -->
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

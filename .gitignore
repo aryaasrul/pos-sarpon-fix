@@ -1,6 +1,8 @@
 # Claude Code local config
 .claude/
+**/.claude/
 .mcp.json
+**/.mcp.json
 
 # OS files
 .DS_Store
@@ -10,3 +12,7 @@ Thumbs.db
 # Editor
 .vscode/
 *.swp
+
+# Dependencies
+node_modules/
+**/node_modules/
