@@ -9,7 +9,15 @@ let orderTotal   = 0;
 let expensePage  = 0;
 let expenseTotal = 0;
 
+// AbortController agar document listeners tidak accumulate tiap navigasi
+let __abort = null;
+
 async function __riwayatSetup() {
+  // Batalkan listeners dari kunjungan sebelumnya
+  if (__abort) __abort.abort();
+  __abort = new AbortController();
+  const { signal } = __abort;
+
   orderPage = 0; expensePage = 0;
 
   document.getElementById('tab-pemasukan')?.addEventListener('click',  () => setActiveTab('pemasukan'));
@@ -34,12 +42,12 @@ async function __riwayatSetup() {
         !e.target.closest('.filter-dropdown')) {
       dropdown.classList.remove('show');
     }
-  });
+  }, { signal });
 
   document.addEventListener('click', e => {
     const header = e.target.closest('.order-header, .expense-header');
     if (header) toggleItem(header.closest('.order-item, .expense-item'));
-  });
+  }, { signal });
 
   const tutupModal = document.getElementById('tutup-buku-modal');
   document.getElementById('btn-tutup-buku')?.addEventListener('click', openTutupBuku);

@@ -279,7 +279,7 @@ function createProductCard(product) {
 }
 
 function formatPriceDisplay(menuItem) {
-  const recipe = menuItem.recipe_ingredients || [];
+  const recipe = (menuItem.recipe_ingredients || []).filter(r => r.ingredient?.is_active !== false);
   if (!isCoffeeCategory(menuItem.category) || recipe.length === 0) {
     return formatCurrency(calcMenuPrice(menuItem).sell);
   }
@@ -439,7 +439,8 @@ async function saveStok() {
     console.error('Gagal ubah stok:', e);
     showToast('Gagal mengubah stok. Coba lagi.');
   } finally {
-    btn.disabled = false;
+    btn.disabled    = false;
+    btn.textContent = document.getElementById('stok-modal-title')?.textContent || 'Simpan';
   }
 }
 
