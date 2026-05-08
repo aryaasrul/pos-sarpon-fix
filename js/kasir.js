@@ -92,9 +92,26 @@ async function fetchAndUpdateProducts() {
 
 function showProductsLoading() {
   const el = document.querySelector('.product-list');
-  if (el) el.innerHTML = '<p class="loading-state">Memuat produk...</p>';
+  if (el) {
+    el.innerHTML = Array(5).fill(null).map(() => `
+      <div class="product-card skeleton-card">
+        <div class="product-info">
+          <div class="product-image skeleton-box"></div>
+          <div class="product-details" style="flex:1">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-sub"></div>
+          </div>
+        </div>
+        <div class="skeleton-qty"></div>
+      </div>
+    `).join('');
+  }
   const cats = document.querySelector('.categories');
-  if (cats) cats.innerHTML = '';
+  if (cats) {
+    cats.innerHTML = Array(4).fill(null).map(() =>
+      '<div class="skeleton-chip"></div>'
+    ).join('');
+  }
 }
 
 function showProductsError() {
@@ -136,7 +153,12 @@ function renderProducts(list) {
     el.innerHTML = '<p class="empty-state">Tidak ada produk tersedia.</p>';
     return;
   }
-  list.forEach(p => el.appendChild(createProductCard(p)));
+  list.forEach((p, idx) => {
+    const card = createProductCard(p);
+    card.classList.add('card-enter');
+    card.style.animationDelay = `${Math.min(idx * 22, 220)}ms`;
+    el.appendChild(card);
+  });
 }
 
 function createProductCard(product) {
@@ -291,6 +313,9 @@ function updateQtyDisplay(product) {
     span.textContent = cart
       .filter(i => i.id === product.id && i._type === product._type)
       .reduce((s, i) => s + i.quantity, 0);
+    span.classList.remove('qty-pop');
+    void span.offsetWidth; // force reflow to restart animation
+    span.classList.add('qty-pop');
   }
   updateTotal();
 }
@@ -299,6 +324,9 @@ function updateTotal() {
   const total = cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const el = document.getElementById('total-amount');
   if (el) el.textContent = formatCurrency(total);
+
+  const summary = document.querySelector('.cart-summary');
+  if (summary) summary.classList.toggle('visible', cart.length > 0);
 }
 
 // ─── SEARCH & FILTER ──────────────────────────────────────────
