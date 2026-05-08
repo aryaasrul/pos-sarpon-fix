@@ -1,3 +1,4 @@
+(function () {
 let allProducts  = [];
 let products     = [];
 let allBeans     = [];
@@ -484,3 +485,4 @@ async function deleteItem(item) {
   }
 }
 
+})();

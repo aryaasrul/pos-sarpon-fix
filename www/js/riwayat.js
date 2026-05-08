@@ -1,3 +1,4 @@
+(function () {
 let currentFilter  = 'Seminggu Terakhir';
 let activeTab      = 'pemasukan';
 let currentBalance = 0;
@@ -361,3 +362,4 @@ function renderError(container, retryFn) {
   `;
   document.getElementById('retry-btn')?.addEventListener('click', retryFn);
 }
+})();

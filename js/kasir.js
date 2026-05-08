@@ -1,3 +1,4 @@
+(function () {
 let allProducts = [];
 let products    = [];
 let cart        = [];
@@ -402,3 +403,4 @@ async function processOrder() {
   updateTotal();
 }
 
+})();

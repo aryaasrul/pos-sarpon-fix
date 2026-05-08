@@ -1,3 +1,4 @@
+(function () {
 let currentRange = '7';
 
 async function __dashboardSetup() {
@@ -38,9 +39,10 @@ async function loadDashboard() {
     content.innerHTML = `
       <div class="error-state">
         <p>Gagal memuat data. Periksa koneksi.</p>
-        <button onclick="loadDashboard()">Coba Lagi</button>
+        <button id="dash-retry-btn">Coba Lagi</button>
       </div>
     `;
+    document.getElementById('dash-retry-btn')?.addEventListener('click', loadDashboard);
     return;
   }
 
@@ -157,3 +159,4 @@ function renderDashboard(s) {
   `;
 }
 
+})();
