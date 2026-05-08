@@ -10,12 +10,14 @@ function navigateTo(url) {
 }
 
 function setupNavbar(activeIndex) {
-  const navItems = document.querySelectorAll('.navbar .nav-item');
+  // Dalam SPA mode, router.js yang kelola click listener dan active state.
+  // setupNavbar hanya dipakai untuk halaman standalone (non-SPA).
+  if (window.__SPA_MODE) return;
 
+  const navItems = document.querySelectorAll('.navbar .nav-item');
   navItems.forEach((item, i) => {
-    if (i === activeIndex) {
-      item.classList.add('active');
-    } else {
+    item.classList.toggle('active', i === activeIndex);
+    if (i !== activeIndex) {
       item.addEventListener('click', () => navigateTo(NAV_ROUTES[i]));
     }
   });

@@ -21,8 +21,8 @@ function setCachedProducts(data) {
   } catch { /* storage penuh, abaikan */ }
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
-  setupNavbar(0);
+async function __kasirSetup() {
+  window.__authUpdateUI?.();
 
   document.querySelector('.btn-input-manual')
     ?.addEventListener('click', () => window.location.href = 'input-manual.html');
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('btn-process')
     ?.addEventListener('click', processOrder);
 
-  // Bean picker modal
   const beanModal = document.getElementById('bean-picker-modal');
   document.getElementById('btn-close-bean')
     ?.addEventListener('click', () => closeModal(beanModal));
@@ -42,7 +41,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   await init();
-});
+  updateTotal(); // tampilkan cart summary jika cart masih ada isinya
+}
+
+window.__kasirInit = __kasirSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', async function () {
+    setupNavbar(0);
+    await __kasirSetup();
+  });
+}
 
 async function init(forceRefresh = false) {
   // Tampilkan dari cache dulu agar halaman cepat muncul

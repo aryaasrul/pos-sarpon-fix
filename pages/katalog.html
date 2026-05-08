@@ -1,0 +1,92 @@
+<div class="header">
+  <h1>Katalog</h1>
+  <button id="btn-tambah" class="btn-tambah-produk">
+    <img src="icons/icon-plus-input-manual.svg" alt="">
+    Tambah Produk
+  </button>
+</div>
+
+<div class="tab-switcher">
+  <button class="tab-btn active" data-tab="produk">Produk</button>
+  <button class="tab-btn" data-tab="beans">Beans</button>
+  <button class="tab-btn" data-tab="stok">Stok Buku</button>
+</div>
+
+<div id="section-produk">
+  <div class="search-container">
+    <div class="search-bar">
+      <input type="text" placeholder="Cari Produk">
+    </div>
+  </div>
+  <div class="categories"></div>
+  <div class="product-list"></div>
+</div>
+
+<div id="section-beans" style="display:none">
+  <div class="search-container">
+    <div class="search-bar">
+      <input type="text" id="search-beans" placeholder="Cari Beans">
+    </div>
+  </div>
+  <div class="beans-list" id="beans-list"></div>
+</div>
+
+<div id="section-stok" style="display:none">
+  <div class="search-container">
+    <div class="search-bar">
+      <input type="text" id="search-stok" placeholder="Cari Judul Buku">
+    </div>
+  </div>
+  <div id="stok-list"></div>
+</div>
+
+<div id="product-options-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-options-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-options-title">Opsi</h2>
+      <span class="close" aria-label="Tutup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <button id="btn-edit-product"   class="option-btn">Edit</button>
+      <button id="btn-delete-product" class="option-btn danger">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div id="stok-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stok-modal-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="stok-modal-title">Ubah Stok</h2>
+      <span class="close" aria-label="Tutup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p id="stok-modal-book" class="stok-modal-book-name"></p>
+      <p id="stok-modal-current" class="stok-modal-current"></p>
+      <div class="stok-modal-input-row">
+        <button id="btn-stok-dec" class="stok-quick-btn">−</button>
+        <input type="number" id="stok-input" min="1" placeholder="1" class="stok-number-input">
+        <button id="btn-stok-inc" class="stok-quick-btn">+</button>
+      </div>
+      <div class="modal-buttons" style="margin-top:16px">
+        <button id="btn-stok-cancel" class="option-btn">Batal</button>
+        <button id="btn-stok-save"   class="option-btn stok-save-btn">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="delete-confirmation-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-delete-title">Konfirmasi Hapus</h2>
+      <span class="close" aria-label="Tutup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Apakah kamu yakin ingin menghapus ini?</p>
+      <div class="modal-buttons" style="margin-top:16px">
+        <button id="btn-cancel-delete"  class="option-btn">Batal</button>
+        <button id="btn-confirm-delete" class="option-btn danger">Hapus</button>
+      </div>
+    </div>
+  </div>
+</div>

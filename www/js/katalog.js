@@ -8,10 +8,10 @@ let stokTarget   = null; // { book, mode: 'tambah'|'kurangi' }
 let beansSearch  = '';
 let stokSearch   = '';
 
-document.addEventListener('DOMContentLoaded', async function () {
-  setupNavbar(1);
+async function __katalogSetup() {
+  currentItem = null;
+  currentTab  = 'produk';
 
-  // Tab switcher
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
@@ -37,16 +37,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       renderStokBuku(stokBooks.filter(b => !stokSearch || b.title.toLowerCase().includes(stokSearch)));
     });
 
-  // ─── Modal opsi produk/bean ────────────────────────────────
   const optionsModal = document.getElementById('product-options-modal');
   const deleteModal  = document.getElementById('delete-confirmation-modal');
 
   document.getElementById('btn-edit-product')?.addEventListener('click', () => {
     if (!currentItem) return;
     closeModal(optionsModal);
-    if (currentItem._type === 'bean')       window.location.href = `tambah-bean.html?id=${currentItem.id}`;
-    else if (currentItem._type === 'book')  window.location.href = `tambah-produk.html?type=book&id=${currentItem.id}`;
-    else                                    window.location.href = `tambah-produk.html?id=${currentItem.id}`;
+    if (currentItem._type === 'bean')      window.location.href = `tambah-bean.html?id=${currentItem.id}`;
+    else if (currentItem._type === 'book') window.location.href = `tambah-produk.html?type=book&id=${currentItem.id}`;
+    else                                   window.location.href = `tambah-produk.html?id=${currentItem.id}`;
   });
 
   document.getElementById('btn-delete-product')?.addEventListener('click', () => {
@@ -62,9 +61,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   [optionsModal, deleteModal].forEach(m => m && setupModalClose(m));
 
-  // ─── Modal stok buku ───────────────────────────────────────
   const stokModal = document.getElementById('stok-modal');
-
   document.getElementById('btn-stok-cancel')?.addEventListener('click', () => closeModal(stokModal));
   setupModalClose(stokModal);
 
@@ -81,7 +78,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('btn-stok-save')?.addEventListener('click', saveStok);
 
   await init();
-});
+}
+
+window.__katalogInit = __katalogSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', async function () {
+    setupNavbar(1);
+    await __katalogSetup();
+  });
+}
 
 // ─── TAB ──────────────────────────────────────────────────────
 

@@ -3,43 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Kasir – Toko Terang</title>
+  <title>Toko Terang POS</title>
+  <!-- Semua CSS dimuat sekali -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="katalog.css">
+  <link rel="stylesheet" href="riwayat.css">
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
 
-  <div class="header">
-    <h1>Kasir</h1>
-    <div class="header-actions">
-      <span id="user-name" class="user-name"></span>
-      <button id="logout-btn" class="logout-btn">Logout</button>
-      <button class="btn-input-manual">
-        <img src="icons/icon-plus-input-manual.svg" alt="">
-        Input Manual
-      </button>
-    </div>
-  </div>
+  <!-- Area konten – diganti oleh router saat navigasi -->
+  <main id="spa-content"></main>
 
-  <div class="search-bar">
-    <input type="text" placeholder="Cari Produk">
-  </div>
-
-  <div class="categories"></div>
-
-  <div class="product-list"></div>
-
-  <div class="cart-summary">
-    <div class="cart-info">
-      <p>Total</p>
-      <p id="total-amount">Rp 0</p>
-    </div>
-    <button id="btn-process" class="btn-process">Proses Pesanan</button>
-  </div>
-
+  <!-- Navbar persisten – tidak pernah di-reload -->
   <nav class="navbar" role="navigation" aria-label="Navigasi utama">
-    <div class="nav-item active">
+    <div class="nav-item">
       <img src="icons/orders-icon.svg" alt="Kasir">
       <span class="nav-label">Kasir</span>
     </div>
@@ -57,22 +37,11 @@
     </div>
   </nav>
 
-  <!-- Modal – pilih bean -->
-  <div id="bean-picker-modal" class="modal" role="dialog" aria-modal="true">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:2px">Pilih Bean</div>
-          <h2 id="bean-picker-title" style="font-size:16px"></h2>
-        </div>
-        <span class="close" id="btn-close-bean" aria-label="Tutup">&times;</span>
-      </div>
-      <div class="modal-body" id="bean-picker-body"></div>
-    </div>
-  </div>
-
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- Tandai sebagai SPA agar setiap page JS tidak auto-init via DOMContentLoaded -->
+  <script>window.__SPA_MODE = true;</script>
 
   <!-- Shared JS -->
   <script src="js/error-handler.js"></script>
@@ -81,7 +50,13 @@
   <script src="js/utils.js"></script>
   <script src="js/nav.js"></script>
 
-  <!-- Page JS -->
+  <!-- Semua page JS dimuat sekali -->
   <script src="js/kasir.js"></script>
+  <script src="js/katalog.js"></script>
+  <script src="js/riwayat.js"></script>
+  <script src="js/dashboard.js"></script>
+
+  <!-- Router – harus paling akhir -->
+  <script src="js/router.js"></script>
 </body>
 </html>

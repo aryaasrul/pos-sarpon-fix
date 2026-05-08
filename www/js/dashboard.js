@@ -1,7 +1,7 @@
 let currentRange = '7';
 
-document.addEventListener('DOMContentLoaded', async function () {
-  setupNavbar(3);
+async function __dashboardSetup() {
+  currentRange = '7';
 
   document.querySelectorAll('.dash-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -13,7 +13,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   await loadDashboard();
-});
+}
+
+window.__dashboardInit = __dashboardSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', async function () {
+    setupNavbar(3);
+    await __dashboardSetup();
+  });
+}
 
 async function loadDashboard() {
   const content = document.getElementById('dash-content');

@@ -1,0 +1,76 @@
+<div class="header">
+  <h1>Laporan Penjualan</h1>
+  <button id="btn-tutup-buku" class="btn-tutup-buku">Tutup Buku</button>
+</div>
+
+<div class="saldo-card" id="saldo-card">
+  <div class="saldo-label">Saldo Saat Ini</div>
+  <div class="saldo-amount" id="saldo-amount">–</div>
+  <div class="saldo-meta" id="saldo-meta"></div>
+</div>
+
+<div class="filter-container">
+  <button class="filter-btn">
+    <img src="icons/Filter-2.svg" alt="">
+    <span>Filter Tanggal/Waktu</span>
+  </button>
+  <button class="refresh-btn" aria-label="Refresh">
+    <img src="icons/Download.svg" alt="">
+  </button>
+</div>
+
+<div class="tab-container">
+  <button class="tab-btn active" id="tab-pemasukan">Pemasukan</button>
+  <button class="tab-btn"        id="tab-pengeluaran">Pengeluaran</button>
+</div>
+
+<div class="tab-content" id="pemasukan-content">
+  <div class="order-list"></div>
+</div>
+
+<div class="tab-content" id="pengeluaran-content" style="display:none">
+  <div class="expense-list"></div>
+  <button id="btn-add-expense" class="btn-add-expense" aria-label="Tambah Pengeluaran">
+    <img src="icons/Plus-square.svg" alt="">
+  </button>
+</div>
+
+<div class="filter-period">
+  <button class="period-btn" aria-label="Pilih periode">
+    <img src="icons/Calendar.svg" alt="">
+    <span>Seminggu Terakhir</span>
+    <img src="icons/Arrow-Down-2.svg" alt="">
+  </button>
+</div>
+
+<div class="filter-dropdown" role="listbox" aria-label="Pilih periode">
+  <div class="filter-option" role="option">Hari Ini</div>
+  <div class="filter-option" role="option">Kemarin</div>
+  <div class="filter-option" role="option">Seminggu Terakhir</div>
+  <div class="filter-option" role="option">Bulan Ini</div>
+  <div class="filter-option" role="option">Bulan Lalu</div>
+</div>
+
+<div id="tutup-buku-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="tutup-buku-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="tutup-buku-title">Tutup Buku</h2>
+      <span class="close" id="btn-close-tutup-buku" aria-label="Tutup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p class="tutup-buku-desc">Mulai periode baru dengan saldo awal yang kamu tentukan sendiri. Riwayat lama tetap tersimpan.</p>
+      <div class="form-group" style="margin-top:16px">
+        <label for="input-saldo-awal">Saldo Awal Periode Baru</label>
+        <input type="text" id="input-saldo-awal" placeholder="Rp 0" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label for="input-tanggal-mulai">Tanggal Mulai Periode</label>
+        <input type="date" id="input-tanggal-mulai">
+      </div>
+      <div class="modal-buttons" style="margin-top:8px">
+        <button id="btn-tutup-buku-batal" class="option-btn">Batal</button>
+        <button id="btn-tutup-buku-simpan" class="option-btn tutup-buku-simpan-btn">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>

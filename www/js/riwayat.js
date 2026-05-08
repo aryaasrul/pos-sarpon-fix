@@ -8,8 +8,8 @@ let orderTotal   = 0;
 let expensePage  = 0;
 let expenseTotal = 0;
 
-document.addEventListener('DOMContentLoaded', async function () {
-  setupNavbar(2);
+async function __riwayatSetup() {
+  orderPage = 0; expensePage = 0;
 
   document.getElementById('tab-pemasukan')?.addEventListener('click',  () => setActiveTab('pemasukan'));
   document.getElementById('tab-pengeluaran')?.addEventListener('click', () => setActiveTab('pengeluaran'));
@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (header) toggleItem(header.closest('.order-item, .expense-item'));
   });
 
-  // Tutup Buku
   const tutupModal = document.getElementById('tutup-buku-modal');
   document.getElementById('btn-tutup-buku')?.addEventListener('click', openTutupBuku);
   document.getElementById('btn-close-tutup-buku')?.addEventListener('click', () => closeModal(tutupModal));
@@ -52,7 +51,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   saldoInput?.addEventListener('input', () => formatRupiah(saldoInput));
 
   await init();
-});
+}
+
+window.__riwayatInit = __riwayatSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', async function () {
+    setupNavbar(2);
+    await __riwayatSetup();
+  });
+}
 
 async function init() {
   try {
