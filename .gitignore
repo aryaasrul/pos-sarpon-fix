@@ -1,8 +1,15 @@
-# Claude Code local config
-.claude/
-**/.claude/
-.mcp.json
-**/.mcp.json
+# Secrets & environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Capacitor build output (generated, tidak perlu di-commit)
+www/
+android/
 
 # OS files
 .DS_Store
@@ -13,10 +20,8 @@ Thumbs.db
 .vscode/
 *.swp
 
-# Dependencies
-node_modules/
-**/node_modules/
-
-# Capacitor native build files (tidak relevan untuk web deployment)
-package.json
-package-lock.json
+# Claude Code local config
+.claude/
+**/.claude/
+.mcp.json
+**/.mcp.json

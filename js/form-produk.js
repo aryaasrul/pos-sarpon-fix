@@ -1,20 +1,44 @@
-let isEditMode     = false;
-let currentId      = null;
-let isBookMode     = false;
-let ingredients    = [];
-let recipeRows     = []; // { ingredient_id, quantity_grams }
+// State — module-level agar bisa diakses semua fungsi helper,
+// di-reset setiap kali __formProdukInit dipanggil.
+let isEditMode  = false;
+let currentId   = null;
+let isBookMode  = false;
+let ingredients = [];
+let recipeRows  = [];
 
-document.addEventListener('DOMContentLoaded', async function () {
-  setupNavbar(1);
+async function __formProdukSetup() {
+  // Reset state setiap navigasi masuk ke halaman ini
+  isEditMode  = false;
+  currentId   = null;
+  isBookMode  = false;
+  ingredients = [];
+  recipeRows  = [];
 
-  const params = new URLSearchParams(window.location.search);
-  const id     = params.get('id');
-  isBookMode   = params.get('type') === 'book';
+  const params = window.__SPA_MODE
+    ? (window.__routeParams || {})
+    : Object.fromEntries(new URLSearchParams(window.location.search));
 
-  // Tampilkan/sembunyikan section sesuai mode
-  document.getElementById('menu-fields')?.style && (document.getElementById('menu-fields').style.display = isBookMode ? 'none' : 'block');
-  document.getElementById('book-fields')?.style  && (document.getElementById('book-fields').style.display  = isBookMode ? 'block' : 'none');
-  document.querySelector('.header h1').textContent = isBookMode ? (id ? 'Ubah Buku' : 'Tambah Buku') : (id ? 'Ubah Menu' : 'Tambah Menu');
+  const id   = params.id   || null;
+  isBookMode = params.type === 'book';
+
+  // Tombol back — SPA pakai router, standalone pakai href
+  document.getElementById('btn-back-form-produk')?.addEventListener('click', () => {
+    window.__router.goTo('katalog');
+  });
+
+  // Tampilkan section sesuai mode
+  const menuFields = document.getElementById('menu-fields');
+  const bookFields = document.getElementById('book-fields');
+  if (menuFields) menuFields.style.display = isBookMode ? 'none' : 'block';
+  if (bookFields) bookFields.style.display  = isBookMode ? 'block' : 'none';
+
+  const titleEl = document.getElementById('form-produk-title')
+    || document.querySelector('.header h1');
+  if (titleEl) {
+    titleEl.textContent = isBookMode
+      ? (id ? 'Ubah Buku'  : 'Tambah Buku')
+      : (id ? 'Ubah Menu'  : 'Tambah Menu');
+  }
 
   if (!isBookMode) {
     ingredients = await loadIngredients();
@@ -41,7 +65,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   setupModalClose(deleteModal);
 
   setupRupiahInputs();
-});
+}
+
+window.__formProdukInit = __formProdukSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', async function () {
+    setupNavbar(1);
+    await __formProdukSetup();
+  });
+}
 
 // ─── LOAD DATA ────────────────────────────────────────────────
 
@@ -57,14 +90,14 @@ async function loadMenuData(id) {
   try {
     const item = await api.getMenuItem(id);
 
-    document.getElementById('nama-produk').value = item.name || '';
-    document.getElementById('kategori').value    = item.category || 'espresso_based';
-    document.getElementById('is-active').checked = item.is_active !== false;
-    document.getElementById('fixed-cost').value  = item.fixed_cost
+    document.getElementById('nama-produk').value    = item.name || '';
+    document.getElementById('kategori').value        = item.category || 'espresso_based';
+    document.getElementById('is-active').checked    = item.is_active !== false;
+    document.getElementById('fixed-cost').value     = item.fixed_cost
       ? 'Rp ' + formatNumber(item.fixed_cost) : '';
-    document.getElementById('profit-margin').value = item.profit_margin != null
+    document.getElementById('profit-margin').value  = item.profit_margin != null
       ? Math.round(item.profit_margin * 100) : 30;
-    document.getElementById('rounding-up').value   = item.rounding_up || 1000;
+    document.getElementById('rounding-up').value    = item.rounding_up || 1000;
 
     onCategoryChange();
 
@@ -76,26 +109,26 @@ async function loadMenuData(id) {
   } catch (e) {
     console.error('Gagal load menu:', e);
     showToast('Menu tidak ditemukan');
-    setTimeout(() => { window.location.href = 'katalog.html'; }, 1200);
+    setTimeout(() => window.__router?.goTo('katalog') || (window.location.href = 'katalog.html'), 1200);
   }
 }
 
 async function loadBookData(id) {
   try {
     const book = await api.getBook(id);
-    document.getElementById('book-title').value    = book.title || '';
-    document.getElementById('book-author').value   = book.author || '';
-    document.getElementById('book-isbn').value     = book.isbn || '';
-    document.getElementById('book-purchase').value = book.purchase_price
+    document.getElementById('book-title').value       = book.title || '';
+    document.getElementById('book-author').value      = book.author || '';
+    document.getElementById('book-isbn').value        = book.isbn || '';
+    document.getElementById('book-purchase').value    = book.purchase_price
       ? 'Rp ' + formatNumber(book.purchase_price) : '';
-    document.getElementById('book-selling').value  = book.selling_price
+    document.getElementById('book-selling').value     = book.selling_price
       ? 'Rp ' + formatNumber(book.selling_price) : '';
-    document.getElementById('book-stock').value    = book.stock_quantity || 0;
+    document.getElementById('book-stock').value       = book.stock_quantity || 0;
     document.getElementById('book-description').value = book.description || '';
   } catch (e) {
     console.error('Gagal load buku:', e);
     showToast('Buku tidak ditemukan');
-    setTimeout(() => { window.location.href = 'katalog.html'; }, 1200);
+    setTimeout(() => window.__router?.goTo('katalog') || (window.location.href = 'katalog.html'), 1200);
   }
 }
 
@@ -130,7 +163,9 @@ function renderRecipeRows() {
     div.className = 'recipe-row';
     div.innerHTML = `
       <select class="recipe-ingredient-select">
-        ${activeIngredients.map(i => `<option value="${i.id}" ${i.id === row.ingredient_id ? 'selected' : ''}>${i.name}</option>`).join('')}
+        ${activeIngredients.map(i =>
+          `<option value="${i.id}" ${i.id === row.ingredient_id ? 'selected' : ''}>${escapeHtml(i.name)}</option>`
+        ).join('')}
       </select>
       <input type="number" class="recipe-qty-input" placeholder="gram" min="0" step="0.1" value="${row.quantity_grams || ''}">
       <button class="btn-remove-recipe" type="button" aria-label="Hapus">×</button>
@@ -164,7 +199,7 @@ function setupRupiahInputs() {
 
 async function saveProduk() {
   const btn = document.getElementById('btn-simpan');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Menyimpan...';
 
   try {
@@ -173,20 +208,20 @@ async function saveProduk() {
     } else {
       await saveMenuItem();
     }
-    window.location.href = 'katalog.html';
+    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
   } catch (e) {
     console.error('Gagal simpan:', e);
     showToast('Gagal menyimpan. Coba lagi.');
   } finally {
-    btn.disabled = false;
+    btn.disabled    = false;
     btn.textContent = 'Simpan';
   }
 }
 
 async function saveMenuItem() {
-  const name     = document.getElementById('nama-produk').value.trim();
-  const category = document.getElementById('kategori').value;
-  const isActive = document.getElementById('is-active').checked;
+  const name       = document.getElementById('nama-produk').value.trim();
+  const category   = document.getElementById('kategori').value;
+  const isActive   = document.getElementById('is-active').checked;
   const fixedCost  = parseRupiah(document.getElementById('fixed-cost').value);
   const marginPct  = parseFloat(document.getElementById('profit-margin').value) || 30;
   const roundingUp = parseInt(document.getElementById('rounding-up').value) || 1000;
@@ -199,10 +234,10 @@ async function saveMenuItem() {
 
   const menuData = {
     name, category,
-    is_active:      isActive,
-    fixed_cost:     fixedCost,
-    profit_margin:  marginPct / 100,
-    rounding_up:    roundingUp,
+    is_active:          isActive,
+    fixed_cost:         fixedCost,
+    profit_margin:      marginPct / 100,
+    rounding_up:        roundingUp,
     recipe_ingredients: validRecipe,
   };
 
@@ -249,7 +284,7 @@ async function deleteProduk() {
     } else {
       await api.deleteMenuItem(currentId);
     }
-    window.location.href = 'katalog.html';
+    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
   } catch (e) {
     console.error('Gagal hapus:', e);
     showToast('Gagal menghapus. Coba lagi.');

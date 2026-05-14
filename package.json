@@ -1,0 +1,15 @@
+{
+  "name": "pos-toko-terang",
+  "version": "1.0.0",
+  "description": "POS Toko Terang",
+  "private": true,
+  "scripts": {
+    "build": "rsync -av --exclude=node_modules --exclude=android --exclude=www --exclude=package.json --exclude=package-lock.json --exclude=capacitor.config.json --exclude=.git . www/",
+    "sync": "npm run build && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  }
+}

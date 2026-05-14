@@ -123,14 +123,6 @@ const api = {
     if (error) throw error;
   },
 
-  async updateIngredientStock(ingredientId, grams) {
-    const { error } = await sb.rpc('decrement_ingredient_stock', {
-      p_ingredient_id: ingredientId,
-      p_grams: grams,
-    });
-    if (error) throw error;
-  },
-
   // ─── BOOKS ───────────────────────────────────────────────────
 
   async getBooks() {
@@ -187,18 +179,14 @@ const api = {
   },
 
   async createTransaction(txData, items) {
-    const { data: txCode, error: codeErr } = await sb.rpc('generate_transaction_code');
-    if (codeErr) throw codeErr;
-    const { data: tx, error: txErr } = await sb
-      .from('transactions')
-      .insert({ ...txData, transaction_code: txCode })
-      .select()
-      .single();
-    if (txErr) throw txErr;
-    const rows = items.map(item => ({ ...item, transaction_id: tx.id }));
-    const { error: itemsErr } = await sb.from('transaction_items').insert(rows);
-    if (itemsErr) throw itemsErr;
-    return tx;
+    const { data, error } = await sb.rpc('create_transaction', {
+      p_total_amount:   txData.total_amount,
+      p_total_profit:   txData.total_profit,
+      p_payment_method: txData.payment_method,
+      p_items:          items,
+    });
+    if (error) throw error;
+    return data;
   },
 
   // ─── EXPENSES ─────────────────────────────────────────────────
@@ -275,14 +263,13 @@ const api = {
 
   // ─── DASHBOARD ────────────────────────────────────────────────
 
-  async getDashboardData(startDate, endDate) {
-    const { data, error } = await sb
-      .from('transaction_items')
-      .select('item_name, item_type, quantity, total_price, profit_total, transactions!inner(created_at)')
-      .gte('transactions.created_at', startDate.toISOString())
-      .lte('transactions.created_at', endDate.toISOString());
+  async getDashboardStats(startDate, endDate) {
+    const { data, error } = await sb.rpc('get_dashboard_stats', {
+      p_start: startDate.toISOString(),
+      p_end:   endDate.toISOString(),
+    });
     if (error) throw error;
-    return data || [];
+    return data;
   },
 
 };

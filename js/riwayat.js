@@ -322,7 +322,7 @@ function buildDetailRows(items, isOrder) {
     });
     return Object.values(combined).map(item => `
       <div class="order-detail-item">
-        <span class="item-name">${item.qty}x ${item.name}</span>
+        <span class="item-name">${item.qty}x ${escapeHtml(item.name)}</span>
         <span class="item-price">+${formatCurrency(item.subtotal)}</span>
       </div>
     `).join('');
@@ -330,7 +330,7 @@ function buildDetailRows(items, isOrder) {
     // Expenses
     return items.map(item => `
       <div class="expense-detail-item">
-        <span class="item-name">${item.name}</span>
+        <span class="item-name">${escapeHtml(item.name)}</span>
         <span class="item-price">-${formatCurrency(Number(item.amount))}</span>
       </div>
     `).join('');

@@ -1,0 +1,73 @@
+<div class="header">
+  <div class="back-button">
+    <button id="btn-back-form-bean" class="btn-back" aria-label="Kembali ke katalog">
+      <img src="icons/Arrow-Left-2.svg" alt="">
+    </button>
+    <h1 id="page-title">Tambah Bean</h1>
+  </div>
+</div>
+
+<div class="content">
+  <h2>Informasi Bean</h2>
+  <div class="form-container">
+
+    <div class="form-group">
+      <label for="bean-name">Nama Bean</label>
+      <input type="text" id="bean-name" placeholder="Nama Bean" maxlength="100">
+    </div>
+
+    <div class="form-group">
+      <label for="bean-category">Tipe Bean</label>
+      <select id="bean-category" class="form-select">
+        <option value="espresso_bean">Espresso Bean</option>
+        <option value="filter_bean">Filter Bean</option>
+        <option value="other">Lainnya</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="bean-price">Harga Beli (per pack)</label>
+      <input type="text" id="bean-price" placeholder="Rp 0" inputmode="numeric">
+    </div>
+
+    <div class="form-group">
+      <label for="bean-pack-size">Ukuran Pack (gram)</label>
+      <input type="number" id="bean-pack-size" placeholder="200" min="1" value="200">
+    </div>
+
+    <div class="form-group">
+      <label for="bean-stock">Stok Saat Ini (gram)</label>
+      <input type="number" id="bean-stock" placeholder="0" min="0" value="0">
+    </div>
+
+    <div class="form-group form-group-inline">
+      <label for="bean-active">Aktif</label>
+      <input type="checkbox" id="bean-active" checked>
+    </div>
+
+    <div class="button-group">
+      <button id="btn-simpan" class="btn-simpan">Simpan</button>
+      <button id="btn-hapus" class="btn-hapus" style="display:none">
+        <img src="icons/Delete.svg" alt="Hapus">
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal – konfirmasi hapus -->
+<div id="delete-confirmation-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-delete-title">Konfirmasi Hapus</h2>
+      <span class="close" aria-label="Tutup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Apakah kamu yakin ingin menghapus bean ini?</p>
+      <div class="modal-buttons" style="margin-top:16px">
+        <button id="btn-cancel-delete" class="option-btn">Batal</button>
+        <button id="btn-confirm-delete" class="option-btn danger">Hapus</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -186,7 +186,7 @@ function createProductCard(product) {
     <div class="product-info">
       <div class="product-image"></div>
       <div class="product-details">
-        <h3>${name}</h3>
+        <h3>${escapeHtml(name)}</h3>
         <p>${isBook ? formatCurrency(Number(product.selling_price)) : formatPriceDisplay(product)}</p>
         ${isBook ? `<span class="stock-badge">Stok: ${product.stock_quantity}</span>` : ''}
       </div>
@@ -299,7 +299,7 @@ function openBeanPicker(product) {
       const btn = document.createElement('button');
       btn.className = 'bean-picker-item';
       btn.innerHTML = `
-        <span class="bean-picker-name">${r.ingredient.name}</span>
+        <span class="bean-picker-name">${escapeHtml(r.ingredient.name)}</span>
         <span class="bean-picker-price">${formatCurrency(sell)}</span>
       `;
       btn.addEventListener('click', () => {

@@ -1,13 +1,20 @@
 // ─── SPA Router ────────────────────────────────────────────────
 // Fetch page fragments, inject ke #spa-content, panggil page init.
 // Navbar tetap ada; hanya konten yang berganti.
+// goTo(routeId, params) menyimpan params ke window.__routeParams
+// sehingga page init bisa membaca ID/type tanpa URLSearchParams.
 
 const ROUTES = [
-  { id: 'kasir',     navIdx: 0, src: 'pages/kasir.html' },
-  { id: 'katalog',   navIdx: 1, src: 'pages/katalog.html' },
-  { id: 'riwayat',   navIdx: 2, src: 'pages/riwayat.html' },
-  { id: 'dashboard', navIdx: 3, src: 'pages/dashboard.html' },
+  { id: 'kasir',       navIdx: 0, src: 'pages/kasir.html' },
+  { id: 'katalog',     navIdx: 1, src: 'pages/katalog.html' },
+  { id: 'riwayat',     navIdx: 2, src: 'pages/riwayat.html' },
+  { id: 'dashboard',   navIdx: 3, src: 'pages/dashboard.html' },
+  { id: 'form-produk', navIdx: 1, src: 'pages/form-produk.html' },
+  { id: 'form-bean',   navIdx: 1, src: 'pages/form-bean.html' },
 ];
+
+// Route yang tidak muncul di navbar (tombol Back kembali ke navIdx-nya)
+const NAV_ROUTE_COUNT = 4;
 
 let current = null;
 const cache = {};
@@ -20,10 +27,13 @@ async function fetchPage(src) {
   return cache[src];
 }
 
-async function goTo(routeId) {
+async function goTo(routeId, params = {}) {
   if (routeId === current) return;
   const route = ROUTES.find(r => r.id === routeId);
   if (!route) return;
+
+  // Simpan params agar page init bisa baca tanpa URLSearchParams
+  window.__routeParams = params;
 
   const content = document.getElementById('spa-content');
 
@@ -50,7 +60,7 @@ async function goTo(routeId) {
   content.classList.add('spa-enter');
   content.addEventListener('animationend', () => content.classList.remove('spa-enter'), { once: true });
 
-  // Update active state navbar
+  // Update active state navbar (hanya untuk 4 tab utama)
   document.querySelectorAll('.navbar .nav-item').forEach((item, i) => {
     item.classList.toggle('active', i === route.navIdx);
   });
@@ -60,10 +70,12 @@ async function goTo(routeId) {
 
   // Panggil init halaman
   const inits = {
-    kasir:    window.__kasirInit,
-    katalog:  window.__katalogInit,
-    riwayat:  window.__riwayatInit,
-    dashboard:window.__dashboardInit,
+    kasir:        window.__kasirInit,
+    katalog:      window.__katalogInit,
+    riwayat:      window.__riwayatInit,
+    dashboard:    window.__dashboardInit,
+    'form-produk': window.__formProdukInit,
+    'form-bean':   window.__formBeanInit,
   };
   await inits[routeId]?.();
 }
@@ -71,10 +83,10 @@ async function goTo(routeId) {
 window.__router = { goTo };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const navItems  = document.querySelectorAll('.navbar .nav-item');
-  const routeIds  = ROUTES.map(r => r.id);
+  const navItems = document.querySelectorAll('.navbar .nav-item');
+  const routeIds = ROUTES.slice(0, NAV_ROUTE_COUNT).map(r => r.id);
 
-  // Wire navbar clicks ke router
+  // Wire navbar clicks ke router (hanya 4 tab utama)
   navItems.forEach((item, i) => {
     item.addEventListener('click', () => goTo(routeIds[i]));
   });

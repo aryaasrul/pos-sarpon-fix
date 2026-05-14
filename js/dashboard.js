@@ -31,9 +31,9 @@ async function loadDashboard() {
 
   const { start, end } = getDashboardRange(currentRange);
 
-  let items;
+  let raw;
   try {
-    items = await api.getDashboardData(start, end);
+    raw = await api.getDashboardStats(start, end);
   } catch (e) {
     console.error('Gagal memuat dashboard:', e);
     content.innerHTML = `
@@ -46,50 +46,21 @@ async function loadDashboard() {
     return;
   }
 
-  const stats = calcStats(items, start, end);
+  const stats = calcStats(raw, start, end);
   content.innerHTML = renderDashboard(stats);
 }
 
-function calcStats(items, start, end) {
-  const totalIncome = items.reduce((s, i) => s + Number(i.total_price), 0);
-  const totalProfit = items.reduce((s, i) => s + Number(i.profit_total || 0), 0);
-
-  const daySet = new Set();
-  const byDay = {};
-  items.forEach(i => {
-    const date = i.transactions.created_at.slice(0, 10);
-    daySet.add(date);
-    byDay[date] = (byDay[date] || 0) + Number(i.total_price);
-  });
-
-  const activeDays = daySet.size || 1;
-  const bestDay = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
-
-  // Item popularity by quantity
-  const itemMap = {};
-  items.forEach(i => {
-    const key = i.item_name;
-    if (!itemMap[key]) itemMap[key] = { name: i.item_name, qty: 0, revenue: 0 };
-    itemMap[key].qty += Number(i.quantity);
-    itemMap[key].revenue += Number(i.total_price);
-  });
-  const topItems = Object.values(itemMap)
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 7);
-
-  // Days in range for avg
-  const msDay = 86400000;
+function calcStats(raw, start, end) {
+  const msDay    = 86400000;
   const rangeDays = Math.max(1, Math.round((end - start) / msDay) + 1);
-
   return {
-    totalIncome,
-    totalProfit,
-    avgPerDay: totalIncome / rangeDays,
-    activeDays,
+    totalIncome: Number(raw.total_income),
+    totalProfit: Number(raw.total_profit),
+    activeDays:  Number(raw.active_days),
     rangeDays,
-    bestDay: bestDay ? { date: bestDay[0], amount: bestDay[1] } : null,
-    topItems,
-    byDay,
+    avgPerDay:   Number(raw.total_income) / rangeDays,
+    bestDay:     raw.best_day || null,
+    topItems:    raw.top_items || [],
   };
 }
 
@@ -108,7 +79,7 @@ function renderDashboard(s) {
           <div class="top-item-row">
             <div class="top-item-rank">${i + 1}</div>
             <div class="top-item-info">
-              <div class="top-item-name">${item.name}</div>
+              <div class="top-item-name">${escapeHtml(item.name)}</div>
               <div class="top-item-bar-wrap">
                 <div class="top-item-bar" style="width:${barWidth}%"></div>
               </div>

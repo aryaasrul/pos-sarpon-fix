@@ -18,9 +18,9 @@ async function __katalogSetup() {
   });
 
   document.getElementById('btn-tambah')?.addEventListener('click', () => {
-    if (currentTab === 'beans') window.location.href = 'tambah-bean.html';
-    else if (currentTab === 'stok') window.location.href = 'tambah-produk.html?type=book';
-    else window.location.href = 'tambah-produk.html';
+    if (currentTab === 'beans')      window.__router.goTo('form-bean');
+    else if (currentTab === 'stok')  window.__router.goTo('form-produk', { type: 'book' });
+    else                             window.__router.goTo('form-produk');
   });
 
   document.querySelector('.search-bar input')
@@ -44,9 +44,9 @@ async function __katalogSetup() {
   document.getElementById('btn-edit-product')?.addEventListener('click', () => {
     if (!currentItem) return;
     closeModal(optionsModal);
-    if (currentItem._type === 'bean')      window.location.href = `tambah-bean.html?id=${currentItem.id}`;
-    else if (currentItem._type === 'book') window.location.href = `tambah-produk.html?type=book&id=${currentItem.id}`;
-    else                                   window.location.href = `tambah-produk.html?id=${currentItem.id}`;
+    if (currentItem._type === 'bean')      window.__router.goTo('form-bean',   { id: currentItem.id });
+    else if (currentItem._type === 'book') window.__router.goTo('form-produk', { type: 'book', id: currentItem.id });
+    else                                   window.__router.goTo('form-produk', { id: currentItem.id });
   });
 
   document.getElementById('btn-delete-product')?.addEventListener('click', () => {
@@ -262,7 +262,7 @@ function createProductCard(product) {
     <div class="product-info">
       <div class="product-image"></div>
       <div class="product-details">
-        <h3>${name}${statusBadge}</h3>
+        <h3>${escapeHtml(name)}${statusBadge}</h3>
         <p>${price}</p>
         ${meta}
       </div>
@@ -325,7 +325,7 @@ function createBeanCard(bean) {
     <div class="product-info">
       <div class="product-image"></div>
       <div class="product-details">
-        <h3>${bean.name}${inactiveBadge}</h3>
+        <h3>${escapeHtml(bean.name)}${inactiveBadge}</h3>
         <p>${formatCurrency(bean.purchase_price)} / ${bean.pack_size_grams}g</p>
         <span class="bean-category-badge">${getBeanCategoryLabel(bean.category)}</span>
         <span class="stock-badge">Stok: ${bean.current_stock_grams}g</span>
@@ -362,8 +362,8 @@ function createStokCard(book) {
     <div class="stok-card-left">
       <div class="product-image stok-book-img"></div>
       <div class="stok-card-info">
-        <div class="stok-book-title">${book.title}</div>
-        ${book.author ? `<div class="stok-book-author">${book.author}</div>` : ''}
+        <div class="stok-book-title">${escapeHtml(book.title)}</div>
+        ${book.author ? `<div class="stok-book-author">${escapeHtml(book.author)}</div>` : ''}
         <div class="stok-book-prices">
           <span>Jual ${formatCurrency(book.selling_price)}</span>
           ${book.purchase_price > 0 ? `<span class="stok-price-sep">·</span><span>Beli ${formatCurrency(book.purchase_price)}</span>` : ''}
