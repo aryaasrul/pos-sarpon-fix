@@ -1,0 +1,60 @@
+<div class="header">
+  <div class="back-button">
+    <button id="btn-back-tambah-pengeluaran" class="btn-back" aria-label="Kembali ke laporan">
+      <img src="icons/Arrow-Left-2.svg" alt="">
+    </button>
+    <h1>Tambah Pengeluaran</h1>
+  </div>
+</div>
+
+<div class="content">
+  <h2>Detail Pengeluaran</h2>
+
+  <div class="form-container">
+
+    <div class="form-group">
+      <label for="tanggal">Pilih Tanggal</label>
+      <div class="date-input">
+        <img src="icons/Calendar.svg" alt="">
+        <input type="date" id="tanggal" name="tanggal">
+      </div>
+    </div>
+
+    <div class="expense-summary">
+      <div class="summary-row">
+        <span class="summary-label">Total Pengeluaran</span>
+        <span class="summary-value" id="total-pengeluaran">Rp 0</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Sisa Saldo</span>
+        <span class="summary-value" id="sisa-saldo">Rp 0</span>
+      </div>
+    </div>
+
+    <div class="expense-items" id="expense-items">
+      <div class="expense-item">
+        <div class="item-row">
+          <div class="item-name">
+            <span>1x</span>
+            <input type="text" class="item-input" placeholder="Nama Item">
+          </div>
+          <div class="item-price">
+            <input type="text" class="price-input" placeholder="Rp 0" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="add-item-container">
+      <button id="btn-add-item" class="btn-add-item" type="button">
+        <img src="icons/Plus-square.svg" alt="">
+        <span>Tambah Item</span>
+      </button>
+    </div>
+
+    <div class="button-group">
+      <button id="btn-simpan" class="btn-simpan">Simpan</button>
+    </div>
+
+  </div>
+</div>

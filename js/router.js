@@ -5,12 +5,13 @@
 // sehingga page init bisa membaca ID/type tanpa URLSearchParams.
 
 const ROUTES = [
-  { id: 'kasir',       navIdx: 0, src: 'pages/kasir.html' },
-  { id: 'katalog',     navIdx: 1, src: 'pages/katalog.html' },
-  { id: 'riwayat',     navIdx: 2, src: 'pages/riwayat.html' },
-  { id: 'dashboard',   navIdx: 3, src: 'pages/dashboard.html' },
-  { id: 'form-produk', navIdx: 1, src: 'pages/form-produk.html' },
-  { id: 'form-bean',   navIdx: 1, src: 'pages/form-bean.html' },
+  { id: 'kasir',               navIdx: 0, src: 'pages/kasir.html' },
+  { id: 'katalog',             navIdx: 1, src: 'pages/katalog.html' },
+  { id: 'riwayat',             navIdx: 2, src: 'pages/riwayat.html' },
+  { id: 'dashboard',           navIdx: 3, src: 'pages/dashboard.html' },
+  { id: 'form-produk',         navIdx: 1, src: 'pages/form-produk.html' },
+  { id: 'form-bean',           navIdx: 1, src: 'pages/form-bean.html' },
+  { id: 'tambah-pengeluaran',  navIdx: 2, src: 'pages/tambah-pengeluaran.html' },
 ];
 
 // Route yang tidak muncul di navbar (tombol Back kembali ke navIdx-nya)
@@ -70,12 +71,13 @@ async function goTo(routeId, params = {}) {
 
   // Panggil init halaman
   const inits = {
-    kasir:        window.__kasirInit,
-    katalog:      window.__katalogInit,
-    riwayat:      window.__riwayatInit,
-    dashboard:    window.__dashboardInit,
-    'form-produk': window.__formProdukInit,
-    'form-bean':   window.__formBeanInit,
+    kasir:                 window.__kasirInit,
+    katalog:               window.__katalogInit,
+    riwayat:               window.__riwayatInit,
+    dashboard:             window.__dashboardInit,
+    'form-produk':         window.__formProdukInit,
+    'form-bean':           window.__formBeanInit,
+    'tambah-pengeluaran':  window.__tambahPengeluaranInit,
   };
   await inits[routeId]?.();
 }

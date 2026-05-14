@@ -23,7 +23,7 @@ async function __riwayatSetup() {
   document.getElementById('tab-pemasukan')?.addEventListener('click',  () => setActiveTab('pemasukan'));
   document.getElementById('tab-pengeluaran')?.addEventListener('click', () => setActiveTab('pengeluaran'));
   document.getElementById('btn-add-expense')
-    ?.addEventListener('click', () => window.location.href = 'tambah-pengeluaran.html');
+    ?.addEventListener('click', () => window.__router?.goTo('tambah-pengeluaran') || (window.location.href = 'tambah-pengeluaran.html'));
 
   document.querySelector('.period-btn')?.addEventListener('click', toggleFilterDropdown);
   document.querySelectorAll('.filter-option').forEach(opt => {
