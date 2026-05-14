@@ -12,6 +12,7 @@ const ROUTES = [
   { id: 'form-produk',         navIdx: 1, src: 'pages/form-produk.html' },
   { id: 'form-bean',           navIdx: 1, src: 'pages/form-bean.html' },
   { id: 'tambah-pengeluaran',  navIdx: 2, src: 'pages/tambah-pengeluaran.html' },
+  { id: 'input-manual',        navIdx: 0, src: 'pages/input-manual.html' },
 ];
 
 // Route yang tidak muncul di navbar (tombol Back kembali ke navIdx-nya)
@@ -78,6 +79,7 @@ async function goTo(routeId, params = {}) {
     'form-produk':         window.__formProdukInit,
     'form-bean':           window.__formBeanInit,
     'tambah-pengeluaran':  window.__tambahPengeluaranInit,
+    'input-manual':        window.__inputManualInit,
   };
   await inits[routeId]?.();
 }

@@ -1,30 +1,36 @@
-document.addEventListener('DOMContentLoaded', function () {
-  setupNavbar(0);
-
-  const namaProdukInput = document.getElementById('nama-produk');
-  const hargaJualInput  = document.getElementById('harga-jual');
-  const hargaHppInput   = document.getElementById('harga-hpp');
-  const namaProdukCount = document.getElementById('nama-produk-count');
-  const hargaJualCount  = document.getElementById('harga-jual-count');
-  const hargaHppCount   = document.getElementById('harga-hpp-count');
-  const btnSelesai      = document.getElementById('btn-selesai');
-
-  namaProdukInput?.addEventListener('input', function () {
-    if (namaProdukCount) namaProdukCount.textContent = this.value.length;
+function __inputManualSetup() {
+  document.getElementById('btn-back-input-manual')?.addEventListener('click', () => {
+    window.__router?.goTo('kasir') || (window.location.href = 'index.html');
   });
 
-  hargaJualInput?.addEventListener('input', function () {
+  document.getElementById('nama-produk')?.addEventListener('input', function () {
+    const el = document.getElementById('nama-produk-count');
+    if (el) el.textContent = this.value.length;
+  });
+
+  document.getElementById('harga-jual')?.addEventListener('input', function () {
     formatRupiah(this);
-    if (hargaJualCount) hargaJualCount.textContent = this.value.length;
+    const el = document.getElementById('harga-jual-count');
+    if (el) el.textContent = this.value.length;
   });
 
-  hargaHppInput?.addEventListener('input', function () {
+  document.getElementById('harga-hpp')?.addEventListener('input', function () {
     formatRupiah(this);
-    if (hargaHppCount) hargaHppCount.textContent = this.value.length;
+    const el = document.getElementById('harga-hpp-count');
+    if (el) el.textContent = this.value.length;
   });
 
-  btnSelesai?.addEventListener('click', prosesInputManual);
-});
+  document.getElementById('btn-selesai')?.addEventListener('click', prosesInputManual);
+}
+
+window.__inputManualInit = __inputManualSetup;
+
+if (!window.__SPA_MODE) {
+  document.addEventListener('DOMContentLoaded', function () {
+    setupNavbar(0);
+    __inputManualSetup();
+  });
+}
 
 async function prosesInputManual() {
   const nama      = document.getElementById('nama-produk').value.trim();
@@ -36,7 +42,7 @@ async function prosesInputManual() {
   if (hargaHpp  < 0)  { showToast('Harga HPP tidak valid'); return; }
 
   const btn = document.getElementById('btn-selesai');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Menyimpan...';
 
   try {
@@ -57,12 +63,14 @@ async function prosesInputManual() {
     );
 
     showToast('Pesanan berhasil disimpan!');
-    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+    setTimeout(() => {
+      window.__router?.goTo('kasir') || (window.location.href = 'index.html');
+    }, 900);
   } catch (e) {
     console.error('Error simpan input manual:', e);
     showToast('Terjadi kesalahan saat menyimpan pesanan');
   } finally {
-    btn.disabled = false;
+    btn.disabled    = false;
     btn.textContent = 'Selesai';
   }
 }
