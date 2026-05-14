@@ -6,6 +6,21 @@
   <button class="dash-filter-btn active" data-range="7">7 Hari</button>
   <button class="dash-filter-btn" data-range="30">30 Hari</button>
   <button class="dash-filter-btn" data-range="month">Bulan Ini</button>
+  <button class="dash-filter-btn" data-range="custom">Custom</button>
+</div>
+
+<div id="dash-custom-range" class="dash-custom-range" style="display:none">
+  <div class="dash-custom-inputs">
+    <div class="dash-custom-field">
+      <label class="dash-custom-label">Dari</label>
+      <input type="date" id="dash-date-start" class="dash-date-input">
+    </div>
+    <div class="dash-custom-field">
+      <label class="dash-custom-label">Sampai</label>
+      <input type="date" id="dash-date-end" class="dash-date-input">
+    </div>
+  </div>
+  <button id="dash-apply-custom" class="dash-apply-btn">Terapkan</button>
 </div>
 
 <div id="dash-content">

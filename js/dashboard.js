@@ -1,16 +1,45 @@
 (function () {
 let currentRange = '7';
+let customStart  = null;
+let customEnd    = null;
 
 async function __dashboardSetup() {
   currentRange = '7';
+  customStart  = null;
+  customEnd    = null;
 
   document.querySelectorAll('.dash-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentRange = btn.dataset.range;
-      loadDashboard();
+
+      const customSection = document.getElementById('dash-custom-range');
+      if (currentRange === 'custom') {
+        customSection.style.display = 'block';
+        if (!customStart) {
+          const now   = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+          document.getElementById('dash-date-start').value = formatDateForInput(start);
+          document.getElementById('dash-date-end').value   = formatDateForInput(now);
+        }
+      } else {
+        customSection.style.display = 'none';
+        loadDashboard();
+      }
     });
+  });
+
+  document.getElementById('dash-apply-custom')?.addEventListener('click', () => {
+    const startVal = document.getElementById('dash-date-start').value;
+    const endVal   = document.getElementById('dash-date-end').value;
+    if (!startVal || !endVal)  { showToast('Pilih rentang tanggal terlebih dahulu'); return; }
+    if (startVal > endVal)     { showToast('Tanggal mulai harus sebelum tanggal akhir'); return; }
+    const [sy, sm, sd] = startVal.split('-').map(Number);
+    const [ey, em, ed] = endVal.split('-').map(Number);
+    customStart = new Date(sy, sm - 1, sd, 0, 0, 0, 0);
+    customEnd   = new Date(ey, em - 1, ed, 23, 59, 59, 999);
+    loadDashboard();
   });
 
   await loadDashboard();
@@ -29,7 +58,14 @@ async function loadDashboard() {
   const content = document.getElementById('dash-content');
   content.innerHTML = '<p class="loading-state">Memuat data...</p>';
 
-  const { start, end } = getDashboardRange(currentRange);
+  let start, end;
+  if (currentRange === 'custom') {
+    if (!customStart || !customEnd) return;
+    start = customStart;
+    end   = customEnd;
+  } else {
+    ({ start, end } = getDashboardRange(currentRange));
+  }
 
   let raw;
   try {
@@ -51,7 +87,7 @@ async function loadDashboard() {
 }
 
 function calcStats(raw, start, end) {
-  const msDay    = 86400000;
+  const msDay     = 86400000;
   const rangeDays = Math.max(1, Math.round((end - start) / msDay) + 1);
   return {
     totalIncome: Number(raw.total_income),
@@ -63,6 +99,88 @@ function calcStats(raw, start, end) {
     topItems:    raw.top_items || [],
   };
 }
+
+// ─── KESEHATAN KEUANGAN ──────────────────────────────────────
+
+function calcHealth(s) {
+  if (s.totalIncome === 0) {
+    return { level: 'no-data', label: 'Belum Ada Data', desc: 'Belum ada transaksi di periode ini.', marginPct: 0 };
+  }
+  const margin    = s.totalProfit / s.totalIncome;
+  const marginPct = Math.round(margin * 100);
+  let level, label, desc;
+
+  if (margin >= 0.50) {
+    level = 'excellent'; label = 'Sangat Sehat';
+    desc  = `Margin ${marginPct}% — bisnis berjalan sangat baik.`;
+  } else if (margin >= 0.30) {
+    level = 'good'; label = 'Sehat';
+    desc  = `Margin ${marginPct}% — bisnis dalam kondisi baik.`;
+  } else if (margin >= 0.15) {
+    level = 'warning'; label = 'Perlu Perhatian';
+    desc  = `Margin ${marginPct}% — pertimbangkan efisiensi biaya.`;
+  } else {
+    level = 'danger'; label = 'Tidak Sehat';
+    desc  = `Margin ${marginPct}% — biaya terlalu tinggi dibanding pendapatan.`;
+  }
+
+  return { level, label, desc, marginPct };
+}
+
+function renderHealthCard(s) {
+  const h    = calcHealth(s);
+  const cogs = s.totalIncome - s.totalProfit;
+
+  if (h.level === 'no-data') {
+    return `
+      <div class="dash-section">
+        <h2 class="dash-section-title">Kesehatan Keuangan</h2>
+        <div class="health-card health-no-data">
+          <div class="health-card-top">
+            <div class="health-badge-wrap">
+              <span class="health-status-dot"></span>
+              <span class="health-label">Belum Ada Data</span>
+            </div>
+          </div>
+          <div class="health-desc">Belum ada transaksi di periode ini.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="dash-section">
+      <h2 class="dash-section-title">Kesehatan Keuangan</h2>
+      <div class="health-card health-${h.level}">
+        <div class="health-card-top">
+          <div class="health-badge-wrap">
+            <span class="health-status-dot"></span>
+            <span class="health-label">${h.label}</span>
+          </div>
+          <div class="health-margin-badge">${h.marginPct}%</div>
+        </div>
+        <div class="health-desc">${h.desc}</div>
+        <div class="health-breakdown">
+          <div class="health-row">
+            <span class="health-row-label">Pemasukan</span>
+            <span class="health-row-val health-val-income">${formatCurrency(s.totalIncome)}</span>
+          </div>
+          <div class="health-row">
+            <span class="health-row-label">Modal / HPP</span>
+            <span class="health-row-val health-val-expense">${formatCurrency(cogs)}</span>
+          </div>
+          <div class="health-divider"></div>
+          <div class="health-row">
+            <span class="health-row-label">Keuntungan</span>
+            <span class="health-row-val health-val-profit">${formatCurrency(s.totalProfit)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
 
 function renderDashboard(s) {
   const bestDayStr = s.bestDay
@@ -111,6 +229,8 @@ function renderDashboard(s) {
         <div class="dash-stat-value">${s.activeDays} <span class="dash-stat-sub">dari ${s.rangeDays} hari</span></div>
       </div>
     </div>
+
+    ${renderHealthCard(s)}
 
     ${s.bestDay ? `
     <div class="dash-section">

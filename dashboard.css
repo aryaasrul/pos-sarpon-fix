@@ -184,3 +184,180 @@
   font-size: 12px;
   color: var(--color-gray-600);
 }
+
+/* ─── Custom Date Range ──────────────────────────────────── */
+.dash-custom-range {
+  padding: 0 var(--page-padding) 16px;
+}
+
+.dash-custom-inputs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dash-custom-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-custom-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.dash-date-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--color-white);
+  color: var(--color-black);
+  box-sizing: border-box;
+}
+
+.dash-apply-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ─── Health Card ────────────────────────────────────────── */
+.health-card {
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.health-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.health-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.health-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.health-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.health-margin-badge {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.health-desc {
+  font-size: 13px;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.health-breakdown {
+  background: rgba(0,0,0,.04);
+  border-radius: calc(var(--radius-md) - 4px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.health-row-label {
+  font-size: 13px;
+  color: inherit;
+  opacity: .75;
+}
+
+.health-row-val {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.health-divider {
+  height: 1px;
+  background: rgba(0,0,0,.1);
+  margin: 2px 0;
+}
+
+/* Level: no-data */
+.health-no-data {
+  background: var(--color-gray-100);
+}
+.health-no-data .health-status-dot { background: var(--color-gray-400); }
+.health-no-data .health-label      { color: var(--color-gray-600); }
+.health-no-data .health-desc       { color: var(--color-gray-600); margin-bottom: 0; }
+
+/* Level: excellent */
+.health-excellent {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.health-excellent .health-status-dot    { background: #2e7d32; }
+.health-excellent .health-margin-badge  { color: #1b5e20; }
+.health-excellent .health-val-income    { color: #1b5e20; }
+.health-excellent .health-val-expense   { color: #555; }
+.health-excellent .health-val-profit    { color: #2e7d32; }
+
+/* Level: good */
+.health-good {
+  background: #e3f2fd;
+  color: #0d3c6e;
+}
+.health-good .health-status-dot    { background: #1565c0; }
+.health-good .health-margin-badge  { color: #0d3c6e; }
+.health-good .health-val-income    { color: #0d3c6e; }
+.health-good .health-val-expense   { color: #555; }
+.health-good .health-val-profit    { color: #1565c0; }
+
+/* Level: warning */
+.health-warning {
+  background: #fff3e0;
+  color: #7f3b00;
+}
+.health-warning .health-status-dot    { background: #e65100; }
+.health-warning .health-margin-badge  { color: #e65100; }
+.health-warning .health-val-income    { color: #7f3b00; }
+.health-warning .health-val-expense   { color: #555; }
+.health-warning .health-val-profit    { color: #e65100; }
+
+/* Level: danger */
+.health-danger {
+  background: #ffebee;
+  color: #7f0000;
+}
+.health-danger .health-status-dot    { background: #c62828; }
+.health-danger .health-margin-badge  { color: #c62828; }
+.health-danger .health-val-income    { color: #7f0000; }
+.health-danger .health-val-expense   { color: #555; }
+.health-danger .health-val-profit    { color: #c62828; }
