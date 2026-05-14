@@ -2,11 +2,13 @@
 let currentRange = '7';
 let customStart  = null;
 let customEnd    = null;
+let todayStats   = null;
 
 async function __dashboardSetup() {
   currentRange = '7';
   customStart  = null;
   customEnd    = null;
+  todayStats   = null;
 
   document.querySelectorAll('.dash-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -42,6 +44,7 @@ async function __dashboardSetup() {
     loadDashboard();
   });
 
+  loadTodayStats(); // fire-and-forget, update slot komisi saat selesai
   await loadDashboard();
 }
 
@@ -53,6 +56,8 @@ if (!window.__SPA_MODE) {
     await __dashboardSetup();
   });
 }
+
+// ─── LOAD DATA ────────────────────────────────────────────────
 
 async function loadDashboard() {
   const content = document.getElementById('dash-content');
@@ -86,9 +91,31 @@ async function loadDashboard() {
   content.innerHTML = renderDashboard(stats);
 }
 
+async function loadTodayStats() {
+  const now   = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  try {
+    const raw  = await api.getDashboardStats(start, end);
+    todayStats = {
+      income: Number(raw.total_income),
+      profit: Number(raw.total_profit),
+      cogs:   Number(raw.total_income) - Number(raw.total_profit),
+    };
+  } catch (e) {
+    console.error('Gagal load data hari ini:', e);
+    todayStats = null;
+  }
+  // Update slot komisi di DOM jika sudah dirender
+  const slot = document.getElementById('komisi-card-slot');
+  if (slot) slot.outerHTML = renderKomisiCard();
+}
+
+// ─── KALKULASI ────────────────────────────────────────────────
+
 function calcStats(raw, start, end) {
-  const msDay     = 86400000;
-  const rangeDays = Math.max(1, Math.round((end - start) / msDay) + 1);
+  const msDay      = 86400000;
+  const rangeDays  = Math.max(1, Math.round((end - start) / msDay) + 1);
   const totalIncome  = Number(raw.total_income);
   const totalProfit  = Number(raw.total_profit);
   const totalExpense = Number(raw.total_expense || 0);
@@ -96,7 +123,7 @@ function calcStats(raw, start, end) {
     totalIncome,
     totalProfit,
     totalExpense,
-    netProfit:  totalProfit - totalExpense,
+    hasil:      totalIncome - totalExpense,
     cogs:       totalIncome - totalProfit,
     activeDays: Number(raw.active_days),
     rangeDays,
@@ -106,32 +133,38 @@ function calcStats(raw, start, end) {
   };
 }
 
-// ─── KESEHATAN KEUANGAN ──────────────────────────────────────
-
 function calcHealth(s) {
   if (s.totalIncome === 0) {
     return { level: 'no-data', label: 'Belum Ada Data', desc: 'Belum ada transaksi di periode ini.', marginPct: 0 };
   }
-  const margin    = s.netProfit / s.totalIncome;
+  const margin    = s.hasil / s.totalIncome;
   const marginPct = Math.round(margin * 100);
   let level, label, desc;
 
-  if (margin >= 0.30) {
+  if (margin > 0.30) {
     level = 'excellent'; label = 'Sangat Sehat';
-    desc  = `Margin bersih ${marginPct}% — bisnis berjalan sangat baik.`;
-  } else if (margin >= 0.15) {
+    desc  = `Arus kas +${marginPct}% — pendapatan jauh di atas pengeluaran.`;
+  } else if (margin > 0.10) {
     level = 'good'; label = 'Sehat';
-    desc  = `Margin bersih ${marginPct}% — bisnis dalam kondisi baik.`;
-  } else if (margin >= 0) {
+    desc  = `Arus kas +${marginPct}% — kondisi keuangan baik.`;
+  } else if (margin > 0) {
     level = 'warning'; label = 'Perlu Perhatian';
-    desc  = `Margin bersih ${marginPct}% — pertimbangkan efisiensi biaya.`;
+    desc  = `Arus kas +${marginPct}% — pengeluaran hampir menyamai pendapatan.`;
   } else {
-    level = 'danger'; label = 'Tidak Sehat';
-    desc  = `Rugi ${Math.abs(marginPct)}% — pengeluaran melebihi keuntungan kotor.`;
+    level = 'danger'; label = 'Merugi';
+    desc  = `Arus kas ${marginPct}% — pengeluaran melebihi pendapatan.`;
   }
 
   return { level, label, desc, marginPct };
 }
+
+function calcKomisi(income) {
+  if (income >= 150000) return 50000;
+  if (income >= 100000) return 40000;
+  return 30000;
+}
+
+// ─── KESEHATAN KEUANGAN ───────────────────────────────────────
 
 function renderHealthCard(s) {
   const h = calcHealth(s);
@@ -153,6 +186,8 @@ function renderHealthCard(s) {
     `;
   }
 
+  const hasilClass = s.hasil >= 0 ? 'health-val-profit' : 'health-val-danger';
+
   return `
     <div class="dash-section">
       <h2 class="dash-section-title">Kesehatan Keuangan</h2>
@@ -167,29 +202,81 @@ function renderHealthCard(s) {
         <div class="health-desc">${h.desc}</div>
         <div class="health-breakdown">
           <div class="health-row">
-            <span class="health-row-label">Pemasukan</span>
-            <span class="health-row-val health-val-income">${formatCurrency(s.totalIncome)}</span>
-          </div>
-          <div class="health-row">
-            <span class="health-row-label">HPP (Modal)</span>
-            <span class="health-row-val health-val-expense">${formatCurrency(s.cogs)}</span>
+            <span class="health-row-label">Penjualan</span>
+            <span class="health-row-val">${formatCurrency(s.totalIncome)}</span>
           </div>
           <div class="health-row">
             <span class="health-row-label">Pengeluaran</span>
-            <span class="health-row-val health-val-expense">${formatCurrency(s.totalExpense)}</span>
+            <span class="health-row-val">− ${formatCurrency(s.totalExpense)}</span>
           </div>
           <div class="health-divider"></div>
           <div class="health-row">
-            <span class="health-row-label">Keuntungan Bersih</span>
-            <span class="health-row-val health-val-profit">${formatCurrency(s.netProfit)}</span>
+            <span class="health-row-label">Hasil</span>
+            <span class="health-row-val ${hasilClass}">${formatCurrency(s.hasil)}</span>
           </div>
+        </div>
+        <div class="health-profit-info">
+          Profit kotor penjualan (tanpa pengeluaran):
+          <strong>${formatCurrency(s.totalProfit)}</strong>
         </div>
       </div>
     </div>
   `;
 }
 
-// ─── RENDER ──────────────────────────────────────────────────
+// ─── KOMISI BARISTA ───────────────────────────────────────────
+
+function renderKomisiCard() {
+  if (!todayStats) {
+    return `
+      <div id="komisi-card-slot" class="dash-section">
+        <h2 class="dash-section-title">Komisi Hari Ini</h2>
+        <div class="komisi-card">
+          <p class="loading-state" style="padding:20px 0;text-align:center;font-size:13px">Memuat...</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const { income, profit, cogs } = todayStats;
+  const komisi = calcKomisi(income);
+  const sisa   = profit - komisi;
+  const komisiLevel = income >= 150000 ? 'excellent' : income >= 100000 ? 'good' : 'warning';
+
+  const sisaLabel = sisa >= 0
+    ? `Sisa profit: <strong>${formatCurrency(sisa)}</strong>`
+    : `<span style="color:#c62828">Profit kotor tidak cukup untuk komisi ini</span>`;
+
+  return `
+    <div id="komisi-card-slot" class="dash-section">
+      <h2 class="dash-section-title">Komisi Hari Ini</h2>
+      <div class="komisi-card">
+        <div class="health-breakdown">
+          <div class="health-row">
+            <span class="health-row-label">Penjualan hari ini</span>
+            <span class="health-row-val">${formatCurrency(income)}</span>
+          </div>
+          <div class="health-row">
+            <span class="health-row-label">HPP</span>
+            <span class="health-row-val">− ${formatCurrency(cogs)}</span>
+          </div>
+          <div class="health-divider"></div>
+          <div class="health-row">
+            <span class="health-row-label">Profit kotor</span>
+            <span class="health-row-val health-val-profit">${formatCurrency(profit)}</span>
+          </div>
+        </div>
+        <div class="komisi-recommendation">
+          <div class="komisi-rec-label">Rekomendasi komisi</div>
+          <div class="komisi-amount komisi-${komisiLevel}">${formatCurrency(komisi)}</div>
+          <div class="komisi-sisa">${sisaLabel}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── RENDER UTAMA ─────────────────────────────────────────────
 
 function renderDashboard(s) {
   const bestDayStr = s.bestDay
@@ -222,7 +309,7 @@ function renderDashboard(s) {
   return `
     <div class="dash-stats-grid">
       <div class="dash-stat-card">
-        <div class="dash-stat-label">Total Pemasukan</div>
+        <div class="dash-stat-label">Total Penjualan</div>
         <div class="dash-stat-value">${formatCurrency(s.totalIncome)}</div>
       </div>
       <div class="dash-stat-card">
@@ -230,7 +317,7 @@ function renderDashboard(s) {
         <div class="dash-stat-value">${formatCurrency(s.avgPerDay)}</div>
       </div>
       <div class="dash-stat-card">
-        <div class="dash-stat-label">Total Profit</div>
+        <div class="dash-stat-label">Profit Kotor</div>
         <div class="dash-stat-value profit">${formatCurrency(s.totalProfit)}</div>
       </div>
       <div class="dash-stat-card">
@@ -240,6 +327,8 @@ function renderDashboard(s) {
     </div>
 
     ${renderHealthCard(s)}
+
+    ${renderKomisiCard()}
 
     ${s.bestDay ? `
     <div class="dash-section">

@@ -356,8 +356,66 @@
   background: #ffebee;
   color: #7f0000;
 }
-.health-danger .health-status-dot    { background: #c62828; }
-.health-danger .health-margin-badge  { color: #c62828; }
-.health-danger .health-val-income    { color: #7f0000; }
-.health-danger .health-val-expense   { color: #555; }
-.health-danger .health-val-profit    { color: #c62828; }
+.health-danger .health-status-dot   { background: #c62828; }
+.health-danger .health-margin-badge { color: #c62828; }
+
+/* Shared value colors (used across levels) */
+.health-val-profit { color: #2e7d32; }
+.health-val-danger { color: #c62828; }
+
+/* ─── Health Profit Info ─────────────────────────────────── */
+.health-profit-info {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  font-size: 12px;
+  opacity: .8;
+  line-height: 1.5;
+}
+
+.health-profit-info strong {
+  font-size: 13px;
+}
+
+/* ─── Komisi Card ────────────────────────────────────────── */
+.komisi-card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.komisi-recommendation {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.komisi-rec-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 8px;
+}
+
+.komisi-amount {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.komisi-sisa {
+  font-size: 13px;
+  color: var(--color-gray-600);
+}
+
+.komisi-sisa strong {
+  color: var(--color-black);
+}
+
+/* Komisi level colors */
+.komisi-excellent { color: #2e7d32; }
+.komisi-good      { color: #1565c0; }
+.komisi-warning   { color: #e65100; }
