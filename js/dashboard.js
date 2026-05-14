@@ -89,14 +89,20 @@ async function loadDashboard() {
 function calcStats(raw, start, end) {
   const msDay     = 86400000;
   const rangeDays = Math.max(1, Math.round((end - start) / msDay) + 1);
+  const totalIncome  = Number(raw.total_income);
+  const totalProfit  = Number(raw.total_profit);
+  const totalExpense = Number(raw.total_expense || 0);
   return {
-    totalIncome: Number(raw.total_income),
-    totalProfit: Number(raw.total_profit),
-    activeDays:  Number(raw.active_days),
+    totalIncome,
+    totalProfit,
+    totalExpense,
+    netProfit:  totalProfit - totalExpense,
+    cogs:       totalIncome - totalProfit,
+    activeDays: Number(raw.active_days),
     rangeDays,
-    avgPerDay:   Number(raw.total_income) / rangeDays,
-    bestDay:     raw.best_day || null,
-    topItems:    raw.top_items || [],
+    avgPerDay:  totalIncome / rangeDays,
+    bestDay:    raw.best_day || null,
+    topItems:   raw.top_items || [],
   };
 }
 
@@ -106,30 +112,29 @@ function calcHealth(s) {
   if (s.totalIncome === 0) {
     return { level: 'no-data', label: 'Belum Ada Data', desc: 'Belum ada transaksi di periode ini.', marginPct: 0 };
   }
-  const margin    = s.totalProfit / s.totalIncome;
+  const margin    = s.netProfit / s.totalIncome;
   const marginPct = Math.round(margin * 100);
   let level, label, desc;
 
-  if (margin >= 0.50) {
+  if (margin >= 0.30) {
     level = 'excellent'; label = 'Sangat Sehat';
-    desc  = `Margin ${marginPct}% — bisnis berjalan sangat baik.`;
-  } else if (margin >= 0.30) {
-    level = 'good'; label = 'Sehat';
-    desc  = `Margin ${marginPct}% — bisnis dalam kondisi baik.`;
+    desc  = `Margin bersih ${marginPct}% — bisnis berjalan sangat baik.`;
   } else if (margin >= 0.15) {
+    level = 'good'; label = 'Sehat';
+    desc  = `Margin bersih ${marginPct}% — bisnis dalam kondisi baik.`;
+  } else if (margin >= 0) {
     level = 'warning'; label = 'Perlu Perhatian';
-    desc  = `Margin ${marginPct}% — pertimbangkan efisiensi biaya.`;
+    desc  = `Margin bersih ${marginPct}% — pertimbangkan efisiensi biaya.`;
   } else {
     level = 'danger'; label = 'Tidak Sehat';
-    desc  = `Margin ${marginPct}% — biaya terlalu tinggi dibanding pendapatan.`;
+    desc  = `Rugi ${Math.abs(marginPct)}% — pengeluaran melebihi keuntungan kotor.`;
   }
 
   return { level, label, desc, marginPct };
 }
 
 function renderHealthCard(s) {
-  const h    = calcHealth(s);
-  const cogs = s.totalIncome - s.totalProfit;
+  const h = calcHealth(s);
 
   if (h.level === 'no-data') {
     return `
@@ -166,13 +171,17 @@ function renderHealthCard(s) {
             <span class="health-row-val health-val-income">${formatCurrency(s.totalIncome)}</span>
           </div>
           <div class="health-row">
-            <span class="health-row-label">Modal / HPP</span>
-            <span class="health-row-val health-val-expense">${formatCurrency(cogs)}</span>
+            <span class="health-row-label">HPP (Modal)</span>
+            <span class="health-row-val health-val-expense">${formatCurrency(s.cogs)}</span>
+          </div>
+          <div class="health-row">
+            <span class="health-row-label">Pengeluaran</span>
+            <span class="health-row-val health-val-expense">${formatCurrency(s.totalExpense)}</span>
           </div>
           <div class="health-divider"></div>
           <div class="health-row">
-            <span class="health-row-label">Keuntungan</span>
-            <span class="health-row-val health-val-profit">${formatCurrency(s.totalProfit)}</span>
+            <span class="health-row-label">Keuntungan Bersih</span>
+            <span class="health-row-val health-val-profit">${formatCurrency(s.netProfit)}</span>
           </div>
         </div>
       </div>
