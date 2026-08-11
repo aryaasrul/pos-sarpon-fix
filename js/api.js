@@ -178,12 +178,13 @@ const api = {
     return { data, count };
   },
 
-  async createTransaction(txData, items) {
+  async createTransaction(txData, items, clientRequestId = null) {
     const { data, error } = await sb.rpc('create_transaction', {
-      p_total_amount:   txData.total_amount,
-      p_total_profit:   txData.total_profit,
-      p_payment_method: txData.payment_method,
-      p_items:          items,
+      p_total_amount:      txData.total_amount,
+      p_total_profit:      txData.total_profit,
+      p_payment_method:    txData.payment_method,
+      p_items:             items,
+      p_client_request_id: clientRequestId,
     });
     if (error) throw error;
     return data;

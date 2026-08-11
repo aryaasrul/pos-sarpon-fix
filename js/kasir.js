@@ -2,6 +2,10 @@
 let allProducts = [];
 let products    = [];
 let cart        = [];
+// Idempotency key untuk transaksi yang sedang diproses. Dipakai ulang saat
+// retry setelah network error supaya server tidak insert dua kali.
+let pendingTxKey       = null;
+let pendingTxSignature = null;
 
 const PRODUCTS_CACHE_KEY = 'kasir_products_v1';
 const PRODUCTS_CACHE_TTL = 3 * 60 * 1000; // 3 menit
@@ -358,6 +362,22 @@ function filterByCategory(cat) {
 
 // ─── PROSES PESANAN ───────────────────────────────────────────
 
+function cartSignature() {
+  return cart
+    .map(i => `${i._type}:${i.id}:${i.ingredientId || ''}:${i.quantity}:${i.unitPrice}`)
+    .join('|');
+}
+
+function getOrCreateTxKey(signature) {
+  // Key baru bila belum ada atau isi cart berubah sejak percobaan terakhir.
+  if (!pendingTxKey || pendingTxSignature !== signature) {
+    pendingTxKey = (crypto.randomUUID && crypto.randomUUID())
+      || ('tx-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    pendingTxSignature = signature;
+  }
+  return pendingTxKey;
+}
+
 async function processOrder() {
   if (cart.length === 0) { showToast('Keranjang kosong!'); return; }
 
@@ -383,19 +403,25 @@ async function processOrder() {
     profit_per_item:  item.unitPrice - item.hpp,
   }));
 
+  // Idempotency key: retry dengan key yang sama = server return transaksi lama.
+  const clientRequestId = getOrCreateTxKey(cartSignature());
+
   try {
-    await api.createTransaction(txData, txItems);
+    await api.createTransaction(txData, txItems, clientRequestId);
   } catch (e) {
     console.error('Gagal simpan transaksi:', e);
     showToast('Gagal menyimpan pesanan. Coba lagi.');
     btn.disabled    = false;
     btn.textContent = 'Proses Pesanan';
+    // pendingTxKey sengaja TIDAK di-reset — retry berikutnya idempotent.
     return;
   }
 
   showToast('Pesanan berhasil disimpan!');
 
   cart = [];
+  pendingTxKey       = null;
+  pendingTxSignature = null;
   btn.disabled    = false;
   btn.textContent = 'Proses Pesanan';
   localStorage.removeItem(PRODUCTS_CACHE_KEY); // invalidate cache setelah transaksi
