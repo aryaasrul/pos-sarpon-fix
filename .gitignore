@@ -25,3 +25,15 @@ Thumbs.db
 **/.claude/
 .mcp.json
 **/.mcp.json
+
+# Superpowers SDD workspace
+.superpowers/
+
+# Old git backups (insiden korupsi filesystem)
+.git.corrupt-*/
+
+# Backup tarballs
+*.tar.gz
+
+# IDE / agents scratch
+.opencode/

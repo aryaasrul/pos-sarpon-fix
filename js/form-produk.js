@@ -109,7 +109,7 @@ async function loadMenuData(id) {
   } catch (e) {
     console.error('Gagal load menu:', e);
     showToast('Menu tidak ditemukan');
-    setTimeout(() => window.__router?.goTo('katalog') || (window.location.href = 'katalog.html'), 1200);
+    setTimeout(() => (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog'), 1200);
   }
 }
 
@@ -128,7 +128,7 @@ async function loadBookData(id) {
   } catch (e) {
     console.error('Gagal load buku:', e);
     showToast('Buku tidak ditemukan');
-    setTimeout(() => window.__router?.goTo('katalog') || (window.location.href = 'katalog.html'), 1200);
+    setTimeout(() => (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog'), 1200);
   }
 }
 
@@ -208,7 +208,7 @@ async function saveProduk() {
     } else {
       await saveMenuItem();
     }
-    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
+    (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog');
   } catch (e) {
     console.error('Gagal simpan:', e);
     showToast('Gagal menyimpan. Coba lagi.');
@@ -284,7 +284,7 @@ async function deleteProduk() {
     } else {
       await api.deleteMenuItem(currentId);
     }
-    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
+    (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog');
   } catch (e) {
     console.error('Gagal hapus:', e);
     showToast('Gagal menghapus. Coba lagi.');

@@ -58,7 +58,7 @@ async function loadBeanData(id) {
   } catch (e) {
     console.error('Gagal load bean:', e);
     showToast('Bean tidak ditemukan');
-    setTimeout(() => window.__router?.goTo('katalog') || (window.location.href = 'katalog.html'), 1200);
+    setTimeout(() => (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog'), 1200);
   }
 }
 
@@ -94,7 +94,7 @@ async function saveBean() {
       await api.createIngredient(data);
     }
 
-    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
+    (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog');
   } catch (e) {
     console.error('Gagal simpan bean:', e);
     showToast('Gagal menyimpan. Coba lagi.');
@@ -108,7 +108,7 @@ async function deleteBean() {
   closeModal(document.getElementById('delete-confirmation-modal'));
   try {
     await api.deleteIngredient(__beanCurrentId);
-    window.__router?.goTo('katalog') || (window.location.href = 'katalog.html');
+    (window.__router && window.__router.goTo('katalog')) || (window.location.href = 'index.html#katalog');
   } catch (e) {
     console.error('Gagal hapus bean:', e);
     showToast('Gagal menghapus. Pastikan bean tidak sedang dipakai di resep menu.');

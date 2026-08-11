@@ -26,7 +26,7 @@ async function __kasirSetup() {
   window.__authUpdateUI?.();
 
   document.querySelector('.btn-input-manual')
-    ?.addEventListener('click', () => window.__router?.goTo('input-manual') || (window.location.href = 'input-manual.html'));
+    ?.addEventListener('click', () => (window.__router && window.__router.goTo('input-manual')) || (window.location.href = 'index.html#input-manual'));
 
   document.querySelector('.search-bar input')
     ?.addEventListener('input', handleSearch);

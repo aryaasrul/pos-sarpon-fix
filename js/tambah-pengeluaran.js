@@ -6,7 +6,7 @@ async function __tambahPengeluaranSetup() {
   __expSisaSaldo = 0;
 
   document.getElementById('btn-back-tambah-pengeluaran')?.addEventListener('click', () => {
-    window.__router?.goTo('riwayat') || (window.location.href = 'riwayat.html');
+    (window.__router && window.__router.goTo('riwayat')) || (window.location.href = 'index.html#riwayat');
   });
 
   const tanggalInput = document.getElementById('tanggal');
@@ -105,7 +105,7 @@ async function saveExpense() {
     await api.createExpenses(data);
     showToast('Pengeluaran berhasil disimpan!');
     setTimeout(() => {
-      window.__router?.goTo('riwayat') || (window.location.href = 'riwayat.html');
+(window.__router && window.__router.goTo('riwayat')) || (window.location.href = 'index.html#riwayat');
     }, 900);
   } catch (e) {
     console.error('Error simpan pengeluaran:', e);

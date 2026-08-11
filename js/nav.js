@@ -2,7 +2,7 @@
 // Panggil setupNavbar() setelah DOM ready
 // activeIndex: 0=Kasir, 1=Katalog, 2=Laporan, 3=Dashboard
 
-const NAV_ROUTES = ['index.html', 'katalog.html', 'riwayat.html', 'dashboard.html'];
+const NAV_ROUTES = ['kasir', 'katalog', 'riwayat', 'dashboard'];
 
 function navigateTo(url) {
   document.body.classList.add('page-exiting');
