@@ -64,7 +64,7 @@ BEGIN
   FOR v_rec IN SELECT elem FROM jsonb_array_elements(p_items) AS t(elem)
   LOOP
     IF (v_rec.elem ->> 'item_type') = 'book' THEN
-      -- decrement_book_stock sudah ada,던져 exception jika stok kurang
+      -- decrement_book_stock sudah ada,throw exception jika stok kurang
       PERFORM decrement_book_stock(
         (v_rec.elem ->> 'item_id')::integer,
         (v_rec.elem ->> 'quantity')::integer
