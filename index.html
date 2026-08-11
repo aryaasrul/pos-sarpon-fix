@@ -40,8 +40,10 @@
     </div>
   </nav>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- Supabase SDK (pinned + SRI) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"
+          integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg"
+          crossorigin="anonymous"></script>
 
   <!-- Tandai sebagai SPA agar setiap page JS tidak auto-init via DOMContentLoaded -->
   <script src="js/spa-flag.js"></script>
