@@ -1,4 +1,5 @@
-// State — module-level agar bisa diakses semua fungsi helper,
+(function () {
+// State — closure-level agar tidak bocor ke window,
 // di-reset setiap kali __formProdukInit dipanggil.
 let isEditMode  = false;
 let currentId   = null;
@@ -290,3 +291,5 @@ async function deleteProduk() {
     showToast('Gagal menghapus. Coba lagi.');
   }
 }
+
+})();
