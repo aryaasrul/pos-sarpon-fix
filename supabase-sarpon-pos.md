@@ -367,3 +367,11 @@
    belum ada trigger untuk current_stock_grams.                                 
   4. RLS terlalu permisif — semua akses public, cocok untuk MVP/lokal tapi perlu
    diperketat untuk produksi.      
+---
+
+## Reproduce Schema
+
+Skema lengkap direproduksi via `migrations/000_init_schema.sql`. Jalankan di
+fresh database sebelum migration `001-007`. Production existing sudah migrasi
+incremental — baseline ini untuk setup baru/audit/recovery. Lockdown RLS
+(public-access -> auth.uid()) adalah plan remediation Fase 3 terpisah.
