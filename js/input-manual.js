@@ -51,7 +51,7 @@ async function prosesInputManual() {
       { total_amount: hargaJual, total_profit: profit, payment_method: 'cash' },
       [{
         item_type:       'menu',
-        item_id:         0,
+        item_id:         null,           // sebelumnya 0 — tidak FK ke menu/buku apapun
         item_name:       nama,
         ingredient_name: null,
         quantity:        1,
